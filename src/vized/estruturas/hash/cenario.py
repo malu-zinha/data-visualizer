@@ -3,6 +3,7 @@ from vized.estruturas.hash import codigo
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
 from vized.nucleo.layout import locais_de
+from vized.renderizadores.buckets import buckets
 
 CHAVE_NOVA = "iza"
 
@@ -13,13 +14,8 @@ def desenhar(p):
     i = locais_de(p, "inserir").get("i")
     hloc = locais_de(p, "h")                    # {} se h() não está na pilha
     cv = Canvas()
-    for k, cadeia in enumerate(t.buckets):
-        col = cv.escrever(k, 2, f"[{k}]", "destaque" if k == i else "fraco")
-        col = cv.escrever(k, col, " ─▶ " if cadeia else " ─▶ ∅", "fraco")
-        for n, chave in enumerate(cadeia):
-            if n:
-                col = cv.escrever(k, col, " ─▶ ", "ponteiro")
-            col = cv.escrever(k, col, f"[{chave}]", "novo" if chave == CHAVE_NOVA else "normal")
+    buckets(cv, 0, 2, t.buckets, lambda k: "destaque" if k == i else "fraco",
+            lambda k, chave: "novo" if chave == CHAVE_NOVA else "normal")
     base = t.m + 1
     if hloc:                                    # dentro de h(): a soma crescendo
         pedacos = [(f"h('{CHAVE_NOVA}'):  ", "titulo")]

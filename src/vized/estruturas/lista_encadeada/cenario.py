@@ -4,33 +4,9 @@ from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
 from vized.nucleo.layout import nomes_no_topo
 from vized.nucleo.vista import do_tipo
+from vized.renderizadores.lista import caixa_no
 
-SEM_ATRIBUTO = object()                   # marca "o atributo ainda não existe"
 VALOR_NOVO = 12
-
-
-def caixa_no(cv, lin, col, no, passo, nomes, tag, tag_seta):
-    """Desenha [valor | prox], o endereço, o prox e as variáveis que apontam para o nó."""
-    borda = "novo" if tag == "novo" else "fraco"
-    cv.escrever(lin, col, "┌────┬───┐", borda)
-    cv.escrever(lin + 1, col, "│", borda)
-    cv.escrever(lin + 1, col + 1, f"{str(getattr(no, 'valor', '?')):^4}", tag)
-    cv.escrever(lin + 1, col + 5, "│", borda)
-    prox = getattr(no, "prox", SEM_ATRIBUTO)
-    if prox is SEM_ATRIBUTO:              # __init__ ainda não criou o campo
-        cv.escrever(lin + 1, col + 6, " ? │", "fraco")
-        texto_prox = "prox não existe"
-    elif prox is None:
-        cv.escrever(lin + 1, col + 6, " ∅ │", "fraco")
-        texto_prox = "prox=None"
-    else:
-        cv.escrever(lin + 1, col + 6, " ●─┼────▶", tag_seta)
-        texto_prox = f"prox={passo.endereco(prox)}"
-    cv.escrever(lin + 2, col, "└────┴───┘", borda)
-    cv.escrever(lin + 3, col + 1, passo.endereco(no), "fraco")
-    cv.escrever(lin + 4, col + 1, texto_prox, "fraco")
-    if id(no) in nomes:
-        cv.escrever(lin + 5, col + 1, "▲ " + ", ".join(nomes[id(no)]), "foco")
 
 
 def desenhar(p):

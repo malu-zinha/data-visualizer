@@ -2,6 +2,7 @@
 from vized.estruturas.pilha_fila import codigo
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
+from vized.renderizadores.sequencia import marcar, vetor
 
 
 def desenhar(p):
@@ -30,28 +31,22 @@ def desenhar(p):
     if topo in ("empilhar", "desempilhar") and "x" in p.topo.locais:
         cv.trechos(lin + 1, 1, [("x", "foco"), (f" = {p.topo.locais['x']}", "fraco")])
     # --- fila circular (vetor com índices) ---
-    fx, larg = 24, 6
+    fx = 24
     cap = len(fila.dados)
     cv.escrever(0, fx, f"Fila circular (capacidade {cap})", "titulo")
     validos = {(fila.inicio + k) % cap for k in range(fila.tamanho)}   # posições ocupadas
     mexendo = {"enfileirar": fila.fim, "desenfileirar": fila.inicio}.get(topo)
-    cv.escrever(3, fx, "┌" + "┬".join("─────" for _ in range(cap)) + "┐", "fraco")
-    cv.escrever(5, fx, "└" + "┴".join("─────" for _ in range(cap)) + "┘", "fraco")
+    tags = []
     for i, dado in enumerate(fila.dados):
-        c = fx + i * larg
-        cv.escrever(2, c + 3, str(i), "fraco")
-        cv.escrever(4, c, "│", "fraco")
         if i == mexendo:
-            tag = "destaque"
+            tags.append("destaque")
         elif i in validos:
-            tag = "novo" if dado in ("E", "F") else "normal"
+            tags.append("novo" if dado in ("E", "F") else "normal")
         else:
-            tag = "fraco"                         # sobra antiga, fora da fila
-        cv.escrever(4, c + 1, f"{'·' if dado is None else dado:^5}", tag)
-    cv.escrever(4, fx + cap * larg, "│", "fraco")
+            tags.append("fraco")                  # sobra antiga, fora da fila
+    vetor(cv, 2, fx, ["·" if d is None else str(d) for d in fila.dados], tags)
     for nome, idx, linha in (("ini", fila.inicio, 6), ("fim", fila.fim, 7)):
-        cv.escrever(linha, fx + idx * larg + 3, "▲", "ponteiro")
-        cv.escrever(linha, fx + idx * larg + 5, nome, "ponteiro")
+        marcar(cv, linha, fx, idx, nome)
     cv.escrever(9, fx, f"tamanho = {fila.tamanho}", "normal")
     cv.escrever(10, fx, "cinza = sobra antiga, fora da fila", "fraco")
     if p.evento == "return" and topo in ("desempilhar", "desenfileirar"):

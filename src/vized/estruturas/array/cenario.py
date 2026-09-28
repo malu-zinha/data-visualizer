@@ -3,6 +3,7 @@ from vized.estruturas.array import codigo
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
 from vized.nucleo.layout import locais_de
+from vized.renderizadores.array import celulas
 
 
 def desenhar_array(foto):
@@ -10,15 +11,9 @@ def desenhar_array(foto):
     v, comp, ok = foto["valores"], foto["comparando"], foto["ordenados"]
     cv = Canvas()
     larg, col = 5, 2                                      # largura da célula, margem
-    cv.escrever(0, col, "┌" + "┬".join("────" for _ in v) + "┐", "fraco")
-    cv.escrever(2, col, "└" + "┴".join("────" for _ in v) + "┘", "fraco")
-    for i, x in enumerate(v):
-        tag = "destaque" if comp and i in comp else "ok" if i in ok else "normal"
-        c = col + i * larg
-        cv.escrever(1, c, "│", "fraco")                  # parede da célula
-        cv.escrever(1, c + 1, f"{x:^4}", tag)            # valor centralizado
-        cv.escrever(3, c + 1, f"{i:^4}", "fraco")        # índice embaixo
-    cv.escrever(1, col + len(v) * larg, "│", "fraco")
+    tags = ["destaque" if comp and i in comp else "ok" if i in ok else "normal"
+            for i in range(len(v))]
+    celulas(cv, 0, col, [str(x) for x in v], tags)
     if comp:
         i, j = comp
         cv.escrever(4, col + i * larg + 2, "▲", "destaque")

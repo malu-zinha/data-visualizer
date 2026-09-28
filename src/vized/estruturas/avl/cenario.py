@@ -2,7 +2,8 @@
 from vized.estruturas.avl import codigo
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
-from vized.nucleo.layout import desenhar_arvore, floresta, lado_a_lado, legenda_variaveis, nomes_no_topo
+from vized.nucleo.layout import lado_a_lado, legenda_variaveis, nomes_no_topo
+from vized.renderizadores.arvore import desenhar_arvore, floresta
 
 VALOR_NOVO = 25
 
