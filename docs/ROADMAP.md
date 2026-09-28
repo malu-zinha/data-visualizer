@@ -103,7 +103,7 @@ coluna viram `@xxxx` escrito. Um título nunca fica na linha de onde sai a
 seta de outra caixa (senão as duas se fundiriam). Limites: 60 objetos,
 12 itens por caixa. Exemplo novo: `exemplos/turma.py`.
 
-## Etapa 4 — detecção de forma + renderizadores especializados
+## Etapa 4 — detecção de forma + renderizadores especializados ✅
 
 `deteccao/formas.py`, olhando o grafo, não os nomes:
 
