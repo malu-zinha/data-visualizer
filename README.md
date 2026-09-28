@@ -1,4 +1,4 @@
-# vized: estruturas de dados no terminal
+# Data Visualizer: estruturas de dados fofinhas no terminal
 
 Visualizador de estruturas de dados em Python: o código roda linha a linha
 no painel da esquerda e a estrutura, como está na memória naquele instante,
