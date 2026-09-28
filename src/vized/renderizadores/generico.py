@@ -45,6 +45,7 @@ class Caixa:
     titulo: list                   # [(texto, tag)], escrito acima da caixa
     linhas: list = field(default_factory=list)   # desenho vertical
     celulas: list = None           # desenho deitado: textos das células
+    com_indices: bool = True       # índices embaixo das células (set não tem)
     ident: int = None              # endereço do objeto (None = caixa de variáveis)
     x: int = 0
     y: int = 0                     # linha do título
@@ -102,7 +103,7 @@ def _refs_do_objeto(e):
     return itens[:MAX_ITENS], len(itens) - MAX_ITENS     # (itens, quantos sobraram)
 
 
-def _profundidades(raizes, heap):
+def _profundidades(raizes, heap, ocultos=frozenset()):
     """Busca em largura a partir das variáveis: endereço → coluna.
 
     A ordem de descoberta também é devolvida: ela decide quem entra quando
@@ -112,8 +113,9 @@ def _profundidades(raizes, heap):
     fila = deque((r, 1) for r in raizes)
     while fila:
         ident, d = fila.popleft()
-        if ident in prof or ident not in heap or len(ordem) >= MAX_OBJETOS:
-            continue
+        if (ident in prof or ident not in heap or ident in ocultos
+                or len(ordem) >= MAX_OBJETOS):
+            continue                                      # oculto = desenhado em outro lugar
         prof[ident] = d
         ordem.append(ident)
         itens, _ = _refs_do_objeto(heap[ident])
@@ -124,23 +126,30 @@ def _profundidades(raizes, heap):
     return prof, ordem
 
 
-def _linha(rotulo, r, prof_origem, prof):
+def _filhos_visiveis(e, ocultos):
+    itens, _ = _refs_do_objeto(e)
+    return [r[1] for _, r in itens if r[0] == "ref" and r[1] not in ocultos]
+
+
+def _linha(rotulo, r, prof_origem, prof, rotulos):
     """Linha de caixa para uma referência vista a partir da coluna prof_origem."""
     if r[0] == "valor":
         return Linha(rotulo, _texto_primitivo(r[1]))
     ident = r[1]
+    if ident in rotulos:                                  # desenhado à parte: só o nome
+        return Linha(rotulo, rotulos[ident], tag_valor="ponteiro")
     if prof.get(ident) == prof_origem + 1:                # alvo na coluna seguinte: seta
         return Linha(rotulo, PONTO, alvo=ident, tag_valor="ponteiro")
     return Linha(rotulo, endereco(ident), tag_valor="ponteiro")   # o resto: endereço escrito
 
 
-def _caixa_do_objeto(ident, heap, prof):
-    caixa = _montar_caixa(ident, heap, prof)
+def _caixa_do_objeto(ident, heap, prof, rotulos):
+    caixa = _montar_caixa(ident, heap, prof, rotulos)
     caixa.ident = ident
     return caixa
 
 
-def _montar_caixa(ident, heap, prof):
+def _montar_caixa(ident, heap, prof, rotulos):
     e, d = heap[ident], prof[ident]
     titulo = [(e["tipo"], "titulo"), (" " + endereco(ident), "fraco")]
     if e["forma"] == "opaco":
@@ -152,13 +161,14 @@ def _montar_caixa(ident, heap, prof):
         if sobra > 0:
             celulas.append("…")
         if sum(len(c) + 3 for c in celulas) <= MAX_DEITADA:
-            return Caixa(titulo, celulas=celulas)         # lista de primitivos: deitada
+            return Caixa(titulo, celulas=celulas,         # lista de primitivos: deitada
+                         com_indices=e["tipo"] not in ("set", "frozenset"))
     linhas = []
     for rotulo, r in itens:
         if isinstance(rotulo, tuple):                     # chave de dicionário (é uma ref)
             rotulo = (_texto_primitivo(rotulo[1]) if rotulo[0] == "valor"
                       else endereco(rotulo[1]))
-        linhas.append(_linha(rotulo, r, d, prof))
+        linhas.append(_linha(rotulo, r, d, prof, rotulos))
     if sobra > 0:
         linhas.append(Linha("…", f"+{sobra}", tag_rotulo="fraco", tag_valor="fraco"))
     if not linhas:
@@ -166,12 +176,12 @@ def _montar_caixa(ident, heap, prof):
     return Caixa(titulo, linhas)
 
 
-def _caixas_de_variaveis(passo, prof):
+def _caixas_de_variaveis(passo, prof, rotulos):
     """Coluna 0: globais, estado (cenários) e uma caixa por chamada de função."""
     caixas = []
 
     def caixa(titulo, variaveis, tag_nome="normal", extra=()):
-        linhas = [_linha(nome, r, 0, prof) for nome, r in variaveis.items()]
+        linhas = [_linha(nome, r, 0, prof, rotulos) for nome, r in variaveis.items()]
         for l in linhas:
             l.tag_rotulo = tag_nome
         linhas += list(extra)
@@ -186,7 +196,7 @@ def _caixas_de_variaveis(passo, prof):
         no_topo = k == len(passo.quadros) - 1
         extra = []
         if no_topo and passo.evento == "return":
-            ret = _linha("retorna", passo.retorno, 0, prof)
+            ret = _linha("retorna", passo.retorno, 0, prof, rotulos)
             ret.tag_rotulo = "ok"
             extra.append(ret)
         caixa([(f"{q.funcao}()", "foco" if no_topo else "titulo")], q.locais,
@@ -206,7 +216,7 @@ def _escrever_caixa(cv, c):
         for i, (texto, w) in enumerate(zip(c.celulas, larguras)):
             cv.escrever(c.y + 2, col, "│", "fraco")
             cv.escrever(c.y + 2, col + 1, texto.center(w))
-            if texto != "…":
+            if texto != "…" and c.com_indices:
                 cv.escrever(c.y + 4, col + 1, str(i).center(w), "fraco")   # índice
             col += w + 1
         cv.escrever(c.y + 2, col, "│", "fraco")
@@ -290,23 +300,29 @@ class Montagem:
     cortou: bool           # passou de MAX_OBJETOS?
 
 
-def montar(passo):
-    """Passo (JSON) → Montagem: caixas com posição e setas com raia."""
-    heap = passo.heap
+def montar(passo, ocultos=frozenset(), rotulos=None):
+    """Passo (JSON) → Montagem: caixas com posição e setas com raia.
+
+    ocultos  endereços desenhados em outro lugar (por um renderizador especializado)
+    rotulos  endereço → texto que aparece no lugar da seta para um oculto
+    """
+    heap, rotulos = passo.heap, rotulos or {}
     raizes = [r[1] for variaveis in (passo.globais, passo.estado,
                                      *(q.locais for q in passo.quadros))
               for r in variaveis.values() if r[0] == "ref"]
     if passo.evento == "return" and passo.retorno[0] == "ref":
         raizes.append(passo.retorno[1])
-    prof, ordem = _profundidades(raizes, heap)
+    # o que os ocultos guardam (ex.: um objeto dentro de um nó) continua visível
+    raizes += [f for o in ocultos if o in heap for f in _filhos_visiveis(heap[o], ocultos)]
+    prof, ordem = _profundidades(raizes, heap, ocultos)
 
     # 1) as caixas, separadas em colunas
-    colunas = [_caixas_de_variaveis(passo, prof)]
+    colunas = [_caixas_de_variaveis(passo, prof, rotulos)]
     caixa_de = {}                                         # endereço → caixa
     for ident in ordem:                                   # ordem da busca em largura
         while len(colunas) <= prof[ident]:
             colunas.append([])
-        caixa_de[ident] = _caixa_do_objeto(ident, heap, prof)
+        caixa_de[ident] = _caixa_do_objeto(ident, heap, prof, rotulos)
         colunas[prof[ident]].append(caixa_de[ident])
 
     # 2) posições, coluna a coluna, e as setas que saem de cada uma
@@ -341,9 +357,9 @@ def montar(passo):
     return Montagem(colunas, setas_pendentes, caixa_de, len(ordem) >= MAX_OBJETOS)
 
 
-def desenhar(passo):
-    """Passo (JSON) → Canvas com caixas e setas."""
-    m = montar(passo)
+def desenhar(passo, ocultos=frozenset(), rotulos=None):
+    """Passo (JSON) → Canvas com caixas e setas (ver `montar`)."""
+    m = montar(passo, ocultos, rotulos)
     cv = Canvas()
     if not any(m.colunas):
         cv.escrever(0, 0, "(nenhuma variável ainda)", "fraco")
