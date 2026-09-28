@@ -39,11 +39,17 @@ def executar_arquivo(caminho):
         sys.path[:] = path_antigo      # devolve o sys.path como estava
 
 
+def _curto(caminho):
+    """Caminho relativo à pasta atual, se ficar mais curto (exemplos/avl.py)."""
+    relativo = os.path.relpath(caminho)
+    return caminho if relativo.startswith(os.pardir) else relativo
+
+
 def cenario_do_arquivo(caminho, max_passos=MAX_PASSOS):
     """Um Cenario que rastreia o arquivo inteiro, do começo ao fim."""
     cenario = Cenario(
         nome=os.path.basename(caminho),
-        operacao=f"python {caminho}",
+        operacao=f"python {_curto(caminho)}",
         preparar=dict,                         # nada a preparar: o arquivo faz tudo
         executar=lambda _estado: executar_arquivo(caminho),
         desenhar=None,                         # definido logo abaixo
