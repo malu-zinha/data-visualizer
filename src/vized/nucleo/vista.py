@@ -54,6 +54,7 @@ class Vista:
     retorno: object
     globais: dict
     enderecos: dict    # id(objeto reconstruído) → endereço original
+    objetos: dict      # endereço original → objeto reconstruído
 
     @property
     def topo(self):
@@ -114,4 +115,4 @@ def reconstruir(passo):
     quadros = [QuadroVisto(q.funcao, q.linha, variaveis(q.locais)) for q in passo.quadros]
     enderecos = {id(obj): ident for ident, obj in memo.items()}
     return Vista(passo.evento, quadros, variaveis(passo.estado), valor(passo.retorno),
-                 variaveis(passo.globais), enderecos)
+                 variaveis(passo.globais), enderecos, dict(memo))
