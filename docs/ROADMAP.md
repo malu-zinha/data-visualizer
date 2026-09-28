@@ -32,7 +32,7 @@ fluxo genérico deve mostrar a rotação tão bem quanto `estruturas/avl/cenario
 Pronto quando: `vized exemplos/bubble.py` mostra o código e o painel de
 memória (mesmo sem desenho especializado).
 
-## Etapa 2 — snapshot como heap achatado (substitui o deepcopy)
+## Etapa 2 — snapshot como heap achatado (substitui o deepcopy) ✅
 
 Motivos: `deepcopy` falha com arquivos, geradores e conexões; pode executar
 `__deepcopy__` da usuária; e duas cópias são difíceis de comparar.
@@ -77,6 +77,14 @@ representação); objetos com `__slots__` não têm `__dict__`.
 
 Pronto quando: os testes de snapshot passam com o novo formato e nenhum
 exemplo usa `deepcopy`.
+
+Como ficou (`nucleo/heap.py`): descrições são dicionários
+(`{"forma": "objeto", "tipo": "No", "campos": {...}}`) em vez de tuplas, por
+legibilidade; namedtuples viram `objeto`; instâncias de classes da
+biblioteca padrão (arquivos, `date`, `Random`...) viram `opaco` com o repr.
+Os cenários à mão leem `passo.vista` (objetos reconstruídos do heap) e
+comparam tipos por nome. O reuso de `id()` entre passos fica para a etapa 5,
+onde importa.
 
 ## Etapa 3 — renderizador genérico (caixas e setas)
 

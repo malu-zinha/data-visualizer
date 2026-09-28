@@ -32,6 +32,8 @@ existe (etapa 3 do roteiro).
     ├── cli.py                  # `vized` e `vized arquivo.py`
     ├── nucleo/                 # compartilhado por todas as estruturas
     │   ├── rastreador.py       # sys.settrace: um snapshot por linha executada
+    │   ├── heap.py             # memória → {endereço: descrição rasa} (JSON)
+    │   ├── vista.py            # heap → objetos leves, para os desenhos
     │   ├── canvas.py           # grade de caracteres com tags semânticas
     │   ├── layout.py           # árvore, floresta, composição lado a lado
     │   ├── cenario.py          # o contrato Cenario (preparar/executar/desenhar)
@@ -63,6 +65,7 @@ Uma estrutura pode ter vários cenários (ex.: inserir, remover, buscar).
 - `tests/test_codigo.py`: as estruturas funcionam (independe do visualizador).
 - `tests/test_desenhos.py`: o desenho de pontos da linha do tempo não mudou.
 - `tests/test_cli.py`: `vized arquivo.py` (globais, limite, erros, saída, interface).
+- `tests/test_heap.py`: o heap achatado (ciclos, sets, slots, opacos, JSON).
 
 ## Página web
 
