@@ -150,9 +150,15 @@ objeto novo (id reaproveitado). Na fila (deque) só o item que entrou fica
 verde: um popleft desloca todos os índices. As tags não mudam o texto, então
 nenhuma snapshot foi regravada; `tests/test_diferenca.py` verifica as tags.
 
-## Etapa 6 — exemplos como corpus de teste
+## Etapa 6 — exemplos como corpus de teste ✅
 
 - Mover `estruturas/*/codigo.py` para `exemplos/` como programas completos
   (com o `preparar` e a chamada no fim do arquivo).
 - `tests/test_desenhos.py` passa a rodar os exemplos pelo fluxo genérico.
 - Quando o genérico cobrir todos os exemplos, `estruturas/` pode sair.
+
+Como ficou: `vized` sem argumentos abre os `exemplos/` como abas (`vized avl`
+é atalho para `exemplos/avl.py`); `estruturas/`, `nucleo/layout.py` e o
+filtro de `codigo.py` saíram. As snapshots dos cenários à mão foram
+substituídas pelas do fluxo completo sobre os exemplos (regravação
+intencional). `tests/test_codigo.py` testa as funções dos próprios exemplos.

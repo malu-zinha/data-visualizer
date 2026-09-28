@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "vized"
 version = "0.1.0"
-description = "Visualizador de estruturas de dados no terminal: código e memória, passo a passo"
+description = "Visualizador de código Python no terminal: execução e memória, passo a passo"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Maria Luiza Uchoa" }]
