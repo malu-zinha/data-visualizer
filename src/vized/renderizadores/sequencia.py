@@ -6,6 +6,9 @@
     └─────┴─────┴─────┘
        ▲ ini       ▲ fim
 """
+from vized.nucleo.canvas import Canvas
+from vized.renderizadores.comum import nomes_por_endereco, texto, titulo
+
 
 
 def vetor(cv, lin, col, textos, tags, largura=5):
@@ -26,3 +29,20 @@ def marcar(cv, lin, col, indice, nome, largura=5, tag="ponteiro"):
     x = col + indice * (largura + 1) + 1 + largura // 2
     cv.escrever(lin, x, "▲", tag)
     cv.escrever(lin, x + 2, nome, tag)
+
+
+# ───────────────────────────── fluxo genérico ──────────────────────────────
+
+def desenhar_estrutura(passo, est):
+    """Fila (deque): sai pela frente, entra pelo fim."""
+    itens = [texto(r[1]) for r in passo.heap[est.raiz]["itens"]]
+    cv = Canvas()
+    titulo(cv, "fila", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    if not itens:
+        cv.escrever(2, 2, "(vazia)", "fraco")
+        return cv
+    largura = max(5, max(len(t) for t in itens) + 2)
+    vetor(cv, 2, 2, itens, ["normal"] * len(itens), largura)
+    marcar(cv, 6, 2, 0, "frente (sai)", largura)
+    marcar(cv, 7, 2, len(itens) - 1, "fim (entra)", largura)
+    return cv

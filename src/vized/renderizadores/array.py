@@ -5,6 +5,9 @@
     └────┴────┴────┘
       0    1    2
 """
+from vized.nucleo.canvas import Canvas
+from vized.renderizadores.comum import indices_do_topo, nomes_por_endereco, texto, titulo
+
 
 
 def celulas(cv, lin, col, textos, tags, largura=4):
@@ -23,3 +26,34 @@ def celulas(cv, lin, col, textos, tags, largura=4):
         centros.append(c + 1 + largura // 2)
     cv.escrever(lin + 1, col + len(textos) * (largura + 1), "│", "fraco")
     return centros
+
+
+# ───────────────────────────── fluxo genérico ──────────────────────────────
+
+MAX_CELULAS = 30
+
+
+def desenhar_estrutura(passo, est):
+    """Array apontado por variável: células, e "▲ j" nos inteiros que são índices."""
+    itens = [r[1] for r in passo.heap[est.raiz]["itens"]]
+    textos = [texto(x) for x in itens[:MAX_CELULAS]]
+    largura = max(4, max(len(t) for t in textos) + 2)
+    marcados = indices_do_topo(passo, len(textos))
+    cv = Canvas()
+    titulo(cv, "array", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    tags = ["destaque" if i in marcados else "normal" for i in range(len(textos))]
+    centros = celulas(cv, 2, 2, textos, tags, largura)
+    if len(itens) > MAX_CELULAS:
+        cv.escrever(3, 2 + len(textos) * (largura + 1) + 2, f"… +{len(itens) - MAX_CELULAS}",
+                    "fraco")
+    ocupado = {}                          # linha → última coluna usada (nomes não se sobrepõem)
+    for i in sorted(marcados):
+        x = centros[i]
+        cv.escrever(6, x, "▲", "destaque")
+        nome = ", ".join(marcados[i])
+        lin = 7
+        while ocupado.get(lin, -1) >= x - 1:
+            lin += 1                      # desce até achar espaço
+        cv.escrever(lin, x, nome, "destaque")
+        ocupado[lin] = x + len(nome)
+    return cv

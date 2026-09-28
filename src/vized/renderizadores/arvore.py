@@ -4,7 +4,9 @@ Os campos de ligação são parâmetros (padrão: "esq" e "dir"); no fluxo
 genérico eles vêm da detecção (deteccao/formas.py), não do nome.
 """
 from vized.nucleo.canvas import Canvas
+from vized.nucleo.layout import lado_a_lado
 from vized.nucleo.vista import do_tipo
+from vized.renderizadores.comum import nomes_por_endereco, titulo
 
 
 def desenhar_arvore(raiz, rotulo, tag_aresta, esq="esq", dir="dir"):
@@ -91,3 +93,50 @@ def floresta(passo, raizes_conhecidas, tipo, esq="esq", dir="dir"):
     raizes, compartilhados = raizes_e_compartilhados(nos.values(), esq, dir)
     raizes.sort(key=lambda n: (not hasattr(n, "valor"), getattr(n, "valor", 0)))
     return raizes, compartilhados
+
+
+# ───────────────────────────── fluxo genérico ──────────────────────────────
+
+def desenhar_estrutura(passo, est):
+    """Árvore detectada (campos de ligação vindos de est.no), com rotação à vista."""
+    v, no = passo.vista, est.no
+    esq, dir = no.ligacoes
+    nos = [v.objetos[i] for i in est.objetos]
+    raizes, compartilhados = raizes_e_compartilhados(nos, esq, dir)
+    if not raizes:                                  # só ciclos: começa por qualquer um
+        raizes = nos[:1]
+    nomes = {id(v.objetos[i]): ns for i, ns in nomes_por_endereco(passo).items()
+             if i in v.objetos}
+
+    def rotulo(n):
+        valor = getattr(n, no.valor, "?") if no.valor else v.endereco(n)
+        pedacos = [(str(valor), "foco" if id(n) in nomes else "normal")]
+        # outros campos simples (ex.: altura numa AVL) aparecem entre parênteses
+        extras = [str(x) for campo, x in vars(n).items()
+                  if campo not in (no.valor, *no.ligacoes)
+                  and isinstance(x, (int, float, str)) and not isinstance(x, bool)]
+        if extras:
+            pedacos.append(("(" + ",".join(extras) + ")", "fraco"))
+        return pedacos
+
+    cv = Canvas()
+    titulo(cv, est.forma, detalhe=no.tipo)
+    arvores = [desenhar_arvore(r, rotulo, lambda a, b: "fraco", esq, dir) for r in raizes]
+    cv.colar(lado_a_lado(arvores), 2, 2)
+    base = cv.altura + 1
+    legenda = []
+    for n in nos:
+        if id(n) in nomes:
+            valor = getattr(n, no.valor, "?") if no.valor else v.endereco(n)
+            legenda += [(", ".join(nomes[id(n)]), "foco"), (f" → {valor}    ", "fraco")]
+    if legenda:
+        cv.trechos(base, 2, [("variáveis: ", "titulo")] + legenda)
+        base += 1
+    if len(raizes) > 1:
+        cv.escrever(base, 2, f"árvore em {len(raizes)} pedaços: nó ainda sem pai"
+                    " ou rotação em andamento", "fraco")
+        base += 1
+    for k, n in enumerate(compartilhados):
+        valor = getattr(n, no.valor, "?") if no.valor else v.endereco(n)
+        cv.escrever(base + k, 2, f"o nó {valor} tem DOIS pais agora", "alerta")
+    return cv
