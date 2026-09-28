@@ -1,0 +1,30 @@
+lista encadeada · No
+
+┌────┬───┐
+│ 7  │ ∅ │
+└────┴───┘
+ @····
+ prox=None
+ ▲ novo
+
+soltos (a cadeia acima não os alcança):
+┌────┬───┐
+│ 3  │ ∅ │
+└────┴───┘
+ @····
+ prox=None
+ ▲ atual
+
+variáveis globais
+┌──────────┐
+│ lista  ●─────────────┬▶ ListaEncadeada @····
+│ x      7 │           │  ┌──────────────────┐
+└──────────┘           │  │ head  nó 3 @···· │
+                       │  └──────────────────┘
+inserir_fim()          │
+┌───────────────────┐  │
+│ self   ●─────────────┘
+│ valor  7          │
+│ novo   nó 7 @···· │
+│ atual  nó 3 @···· │
+└───────────────────┘
