@@ -6,7 +6,6 @@ from textual.widgets import Static
 
 from vized.cli import cenario_do_arquivo
 from vized.interface.app_textual import VisualizadorApp
-from vized.nucleo.rastreador import Opaco
 
 BUBBLE = Path(__file__).parent.parent / "exemplos" / "bubble.py"
 
@@ -21,7 +20,7 @@ def programa(tmp_path, codigo):
 def test_bubble_roda_do_comeco_ao_fim():
     c = cenario_do_arquivo(str(BUBBLE))
     assert c.passos and c.erro is None and not c.cortado
-    assert c.passos[-1].globais["numeros"] == [1, 2, 5, 7, 9]
+    assert c.passos[-1].vista.globais["numeros"] == [1, 2, 5, 7, 9]
     # só linhas do próprio arquivo: nada do runpy nem do vized
     assert {q.funcao for p in c.passos for q in p.quadros} == {"<module>", "bubble_sort"}
 
@@ -39,9 +38,9 @@ def test_globais_sem_modulos_funcoes_classes_e_dunders(tmp_path):
 def test_global_e_local_sao_o_mesmo_objeto():
     c = cenario_do_arquivo(str(BUBBLE))
     p = next(p for p in c.passos if p.topo.funcao == "bubble_sort")
-    lista_global, lista_local = p.globais["numeros"], p.topo.locais["v"]
-    assert lista_global is lista_local          # uma cópia só, não duas
-    assert p.endereco(lista_global) == p.endereco(lista_local)
+    assert p.globais["numeros"] == p.topo.locais["v"]   # mesma referência no heap
+    vista = p.vista
+    assert vista.globais["numeros"] is vista.topo.locais["v"]   # e na reconstrução
 
 
 def test_quadro_do_modulo_nao_repete_as_globais():
@@ -68,15 +67,16 @@ def test_erro_no_programa_preserva_os_passos(tmp_path):
         ("line", 1), ("line", 2), ("return", 2)]
 
 
-def test_valores_nao_copiaveis_viram_opaco(tmp_path):
+def test_arquivo_e_gerador_viram_opaco(tmp_path):
     c = cenario_do_arquivo(programa(tmp_path, (
         "arq = open(__file__)\n"
         "gen = (x for x in range(3))\n"
         "lista = [1, 2]\n"
         "fim = 1\n")))
-    g = c.passos[-1].globais
-    assert isinstance(g["arq"], Opaco) and isinstance(g["gen"], Opaco)
-    assert g["lista"] == [1, 2]                 # o resto continua copiado de verdade
+    p = c.passos[-1]
+    assert p.heap[p.globais["arq"][1]]["forma"] == "opaco"
+    assert p.heap[p.globais["gen"][1]]["forma"] == "opaco"
+    assert p.vista.globais["lista"] == [1, 2]   # o resto continua descrito de verdade
 
 
 def test_saida_cresce_passo_a_passo():
@@ -95,7 +95,7 @@ def test_input_nao_trava(tmp_path):
 def test_import_de_modulo_ao_lado_do_arquivo(tmp_path):
     (tmp_path / "ajudante.py").write_text("DOBRO = 2\n")
     c = cenario_do_arquivo(programa(tmp_path, "import ajudante\nx = ajudante.DOBRO\nfim = 1\n"))
-    assert c.erro is None and c.passos[-1].globais["x"] == 2
+    assert c.erro is None and c.passos[-1].globais["x"] == ("valor", 2)
 
 
 def texto(app, seletor):

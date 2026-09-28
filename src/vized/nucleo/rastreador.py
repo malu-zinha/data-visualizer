@@ -1,15 +1,20 @@
 """Executa uma operação sob sys.settrace e grava um snapshot a cada linha.
 
 É o que liga "linha do código" e "estado da memória": cada Passo guarda
-qual linha VAI executar, a pilha de chamadas e uma cópia de tudo que
-estava nas variáveis naquele instante.
+qual linha VAI executar, a pilha de chamadas e a memória daquele instante
+achatada num heap (ver heap.py). Um Passo é JSON puro: nada nele aponta
+para objetos vivos do programa.
 """
-import copy
 import functools
 import inspect
+import linecache
 import os
 import sys
 from dataclasses import dataclass, field
+from functools import cached_property
+
+from vized.nucleo.heap import achatar, endereco, ref
+from vized.nucleo.vista import reconstruir
 
 # pasta src/vized/estruturas: só os codigo.py daqui dentro são "código observado"
 PASTA_ESTRUTURAS = os.path.join(os.path.dirname(os.path.dirname(__file__)), "estruturas")
@@ -47,46 +52,38 @@ class LimiteDePassos(BaseException):
 
 
 @dataclass
-class Opaco:
-    """Lugar de um valor que o deepcopy não conseguiu copiar (arquivo, gerador...).
-
-    Remendo provisório: a etapa 2 troca o deepcopy pelo heap achatado.
-    """
-    tipo: str          # nome do tipo original, ex.: "TextIOWrapper"
-    texto: str         # repr curto do original, feito na hora da foto
-
-    def __repr__(self):
-        return self.texto              # o repr do original já diz o tipo
-
-
-@dataclass
 class Quadro:
-    """Um frame da pilha de chamadas (copiado)."""
-    funcao: str        # nome da função ("<module>" = nível do arquivo)
-    linha: int         # linha atual dentro dela
-    locais: dict       # cópia das variáveis locais
-    codigo: object     # code object, para achar o código-fonte
+    """Um frame da pilha de chamadas."""
+    funcao: str          # nome da função ("<module>" = nível do arquivo)
+    linha: int           # linha atual dentro dela
+    locais: dict         # nome → ref (("valor", 3) ou ("ref", endereço))
+    arquivo: str         # de onde vem o código...
+    primeira_linha: int  # ...e onde a função começa (para achar o fonte)
 
 
 @dataclass
 class Passo:
     evento: str        # "line" = vai executar a linha; "return" = está retornando
     quadros: list      # pilha de chamadas, da base para o topo
-    estado: dict       # objetos extras que o cenário pediu para fotografar
-    retorno: object    # valor retornado (só quando evento == "return")
-    enderecos: dict    # id(cópia) → id(original)
-    globais: dict = field(default_factory=dict)   # variáveis globais do arquivo (cópia)
+    estado: dict       # nome → ref dos objetos extras que o cenário pediu
+    retorno: tuple     # ref do valor retornado (só quando evento == "return")
+    heap: dict         # endereço → descrição rasa de cada objeto alcançável
+    globais: dict = field(default_factory=dict)   # nome → ref das globais do arquivo
     saida: int = 0     # quantos caracteres de print() já tinham saído até aqui
 
     @property
     def topo(self):
         return self.quadros[-1]                 # frame que está executando
 
-    def endereco(self, obj):
-        # a cópia tem outro id(); o mapa devolve o endereço do objeto ORIGINAL,
-        # assim o mesmo nó mostra o mesmo @xxxx em todos os passos
-        original = self.enderecos.get(id(obj), id(obj))
-        return f"@{original & 0xFFFF:04x}"
+    def endereco(self, r):
+        """Rótulo '@xxxx' de uma referência. O endereço é o id() do objeto
+        original, então o mesmo nó mostra o mesmo @xxxx em todos os passos."""
+        return endereco(r[1])
+
+    @cached_property
+    def vista(self):
+        """Os mesmos dados como objetos (n.esq, g.adj[v]...), para os desenhos."""
+        return reconstruir(self)
 
 
 @dataclass
@@ -101,8 +98,8 @@ class Rastreio:
 def global_visivel(nome, valor):
     """As globais que interessam: sem __dunder__, módulos, funções e classes.
 
-    Além de limpar o painel, isso evita copiar módulos (o deepcopy de um
-    módulo levanta TypeError: qualquer `import` quebraria o rastreio).
+    Módulos, funções e classes não são "dados" do programa, só poluiriam o
+    painel e o heap.
     """
     if nome.startswith("__") and nome.endswith("__"):
         return False                            # __name__, __builtins__, __file__...
@@ -110,48 +107,12 @@ def global_visivel(nome, valor):
                 or inspect.isclass(valor))
 
 
-def _copiar_um(valor, memo):
-    """Copia um valor com o memo compartilhado; se não der, devolve Opaco."""
-    antes = dict(memo)                          # foto do memo antes de tentar
-    try:
-        return copy.deepcopy(valor, memo)
-    except Exception:
-        # uma cópia que falhou no meio pode ter deixado objetos pela metade
-        # no memo; volta o memo ao que era para não reaproveitá-los depois
-        memo.clear()
-        memo.update(antes)
-        try:
-            texto = repr(valor)
-        except Exception:                       # até o repr pode falhar
-            texto = "?"
-        return Opaco(type(valor).__name__, texto[:40])
-
-
-def _copiar(locais, globais, estado, retorno):
-    """Uma única cópia de tudo, preservando quem aponta para quem.
-
-    Devolve (locais, globais, estado, retorno, memo).
-    """
-    memo = {}                                   # memo compartilhado = UMA cópia só
-    try:
-        copia = copy.deepcopy((locais, globais, estado, retorno), memo)
-        return (*copia, memo)
-    except Exception:
-        pass                                    # algo ali não se deixa copiar...
-    memo = {}                                   # ...então vai variável por variável,
-    locais = [{k: _copiar_um(v, memo) for k, v in loc.items()} for loc in locais]
-    globais = {k: _copiar_um(v, memo) for k, v in globais.items()}
-    estado = _copiar_um(estado, memo)           # ainda com o MESMO memo
-    retorno = _copiar_um(retorno, memo)
-    return locais, globais, estado, retorno, memo
-
-
 def rastrear(chamada, capturar=dict, pular=(), filtro=e_codigo_observado,
              max_passos=None, com_globais=False, medir_saida=None):
     """Roda `chamada()` e devolve um Rastreio.
 
     filtro       recebe o caminho do arquivo de um frame; só grava se devolver True
-    capturar     função sem argumentos que devolve objetos extras a fotografar
+    capturar     função sem argumentos que devolve {nome: objeto} extras a fotografar
     pular        nomes de funções tratadas como "step over" (não entra nelas)
     max_passos   limite da linha do tempo (None = sem limite)
     com_globais  grava também as variáveis globais do arquivo observado
@@ -181,12 +142,21 @@ def rastrear(chamada, capturar=dict, pular=(), filtro=e_codigo_observado,
         if com_globais:                         # globais do frame mais perto da base
             globais = {k: v for k, v in pilha[0].f_globals.items()
                        if global_visivel(k, v)}
-        locais, globais, estado, ret, memo = _copiar(locais, globais, capturar(), retorno)
-        enderecos = {id(c): orig for orig, c in memo.items()}
-        quadros = [Quadro(f.f_code.co_name, f.f_lineno, loc, f.f_code)
+        estado = capturar()
+        # um único heap com tudo que qualquer variável alcança
+        raizes = [v for loc in locais for v in loc.values()]
+        raizes += list(globais.values()) + list(estado.values()) + [retorno]
+        heap = achatar(raizes)
+
+        def refs(variaveis):
+            return {nome: ref(v) for nome, v in variaveis.items()}
+
+        quadros = [Quadro(f.f_code.co_name, f.f_lineno, refs(loc),
+                          f.f_code.co_filename, f.f_code.co_firstlineno)
                    for f, loc in zip(pilha, locais)]
         saida = medir_saida() if medir_saida else 0
-        passos.append(Passo(evento, quadros, estado, ret, enderecos, globais, saida))
+        passos.append(Passo(evento, quadros, refs(estado), ref(retorno), heap,
+                            refs(globais), saida))
 
     def tracer(frame, evento, arg):
         if not interessa(frame):
@@ -213,8 +183,16 @@ def rastrear(chamada, capturar=dict, pular=(), filtro=e_codigo_observado,
 _cache_fonte = {}
 
 
-def fonte(codigo):
-    """(linhas, primeira_linha) da função dona do code object."""
-    if codigo not in _cache_fonte:
-        _cache_fonte[codigo] = inspect.getsourcelines(codigo)
-    return _cache_fonte[codigo]
+def fonte(quadro):
+    """(linhas, primeira_linha) do código do quadro: a função, ou o arquivo todo."""
+    chave = (quadro.arquivo, quadro.primeira_linha, quadro.funcao)
+    if chave not in _cache_fonte:
+        linhas = linecache.getlines(quadro.arquivo)
+        if quadro.funcao == "<module>":
+            _cache_fonte[chave] = (linhas, 1)
+        else:
+            # getblock pega do "def" até onde a indentação termina
+            # (é o que o inspect.getsourcelines faz por dentro)
+            inicio = quadro.primeira_linha
+            _cache_fonte[chave] = (inspect.getblock(linhas[inicio - 1:]), inicio)
+    return _cache_fonte[chave]

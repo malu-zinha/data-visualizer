@@ -15,8 +15,9 @@ def fb_guardado(n):
 
 
 def desenhar(p):
-    raizes, compartilhados = floresta(p, [p.estado["raiz"]], codigo.NoAVL)
-    nomes = nomes_no_topo(p, codigo.NoAVL)
+    p = p.vista                     # objetos reconstruídos a partir do heap
+    raizes, compartilhados = floresta(p, [p.estado["raiz"]], "NoAVL")
+    nomes = nomes_no_topo(p, "NoAVL")
 
     def rotulo(n):
         if not hasattr(n, "altura"):                     # ainda no __init__
@@ -35,7 +36,7 @@ def desenhar(p):
     arvores = [desenhar_arvore(r, rotulo, lambda a, b: "fraco") for r in raizes]
     cv.colar(lado_a_lado(arvores), 0, 2)
     base = cv.altura + 1
-    legenda_variaveis(cv, base, p, codigo.NoAVL)
+    legenda_variaveis(cv, base, p, "NoAVL")
     cv.escrever(base + 1, 2, "entre parênteses: fator de balanceamento", "fraco")
     if len(raizes) > 1:
         cv.escrever(base + 2, 2, "rotação em andamento: árvore em pedaços", "fraco")

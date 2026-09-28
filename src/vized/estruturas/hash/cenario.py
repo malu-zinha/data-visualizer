@@ -8,6 +8,7 @@ CHAVE_NOVA = "iza"
 
 
 def desenhar(p):
+    p = p.vista                     # objetos reconstruídos a partir do heap
     t = p.estado["tabela"]
     i = locais_de(p, "inserir").get("i")
     hloc = locais_de(p, "h")                    # {} se h() não está na pilha

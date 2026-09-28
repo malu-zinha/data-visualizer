@@ -3,6 +3,7 @@ from vized.estruturas.lista_encadeada import codigo
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
 from vized.nucleo.layout import nomes_no_topo
+from vized.nucleo.vista import do_tipo
 
 SEM_ATRIBUTO = object()                   # marca "o atributo ainda não existe"
 VALOR_NOVO = 12
@@ -33,6 +34,7 @@ def caixa_no(cv, lin, col, no, passo, nomes, tag, tag_seta):
 
 
 def desenhar(p):
+    p = p.vista                     # objetos reconstruídos a partir do heap
     lista = p.estado["lista"]
     cadeia, no = [], lista.head
     while no is not None:                 # segue as referências a partir de head
@@ -42,10 +44,10 @@ def desenhar(p):
     soltos = []                           # nós que existem mas a lista não alcança
     for q in p.quadros:
         for v in q.locais.values():
-            if isinstance(v, codigo.No) and id(v) not in na_cadeia \
+            if do_tipo(v, "No") and id(v) not in na_cadeia \
                     and all(v is not s for s in soltos):
                 soltos.append(v)
-    nomes = nomes_no_topo(p, codigo.No)
+    nomes = nomes_no_topo(p, "No")
 
     def tag(n):
         novo = getattr(n, "valor", VALOR_NOVO) == VALOR_NOVO     # sem valor = em construção

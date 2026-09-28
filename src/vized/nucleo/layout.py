@@ -1,5 +1,10 @@
-"""Funções de desenho reaproveitadas por várias estruturas."""
+"""Funções de desenho reaproveitadas por várias estruturas.
+
+Recebem a Vista do passo (objetos reconstruídos do heap); tipos são
+indicados pelo NOME da classe, ex.: "NoAVL" (ver vista.do_tipo).
+"""
 from vized.nucleo.canvas import Canvas
+from vized.nucleo.vista import do_tipo
 
 
 # ───────────────────────────── leitura do passo ────────────────────────────
@@ -12,20 +17,20 @@ def locais_de(passo, funcao):
     return {}
 
 
-def nomes_no_topo(passo, tipos):
+def nomes_no_topo(passo, tipo):
     """id(objeto) → nomes das variáveis do frame do topo que apontam para ele."""
     nomes = {}
     for nome, valor in passo.topo.locais.items():
-        if isinstance(valor, tipos):
+        if do_tipo(valor, tipo):
             nomes.setdefault(id(valor), []).append(nome)
     return nomes
 
 
-def legenda_variaveis(cv, lin, passo, tipos):
+def legenda_variaveis(cv, lin, passo, tipo):
     """Escreve 'variáveis: y → 40  x → 30' com as referências do frame do topo."""
     pedacos = []
     for nome, v in passo.topo.locais.items():
-        if isinstance(v, tipos):
+        if do_tipo(v, tipo):
             pedacos += [(nome, "foco"), (f" → {getattr(v, 'valor', '?')}    ", "fraco")]
     if pedacos:
         cv.trechos(lin, 2, [("variáveis: ", "titulo")] + pedacos)
@@ -99,8 +104,8 @@ def floresta(passo, raizes_conhecidas, tipo):
     """
     candidatos = [r for r in raizes_conhecidas if r is not None]
     for q in passo.quadros:
-        candidatos += [v for v in q.locais.values() if isinstance(v, tipo)]
-    if isinstance(passo.retorno, tipo):
+        candidatos += [v for v in q.locais.values() if do_tipo(v, tipo)]
+    if do_tipo(passo.retorno, tipo):
         candidatos.append(passo.retorno)
     nos, pilha = {}, list(candidatos)
     while pilha:                          # coleta tudo que é alcançável

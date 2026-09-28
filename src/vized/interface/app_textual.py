@@ -172,7 +172,7 @@ class VisualizadorApp(App):
             codigo.border_title = (os.path.basename(cenario.arquivo) if no_modulo
                                    else f"{os.path.basename(cenario.arquivo)} · {topo.funcao}()")
         else:                                    # cenários: só a função do topo da pilha
-            linhas, primeira = fonte(topo.codigo)
+            linhas, primeira = fonte(topo)
             codigo.update(Syntax("".join(linhas), "python", theme="monokai",
                                  line_numbers=True, start_line=primeira,
                                  highlight_lines={topo.linha}, background_color="default"))

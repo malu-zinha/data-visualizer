@@ -5,6 +5,7 @@ from vized.nucleo.cenario import Cenario
 
 
 def desenhar(p):
+    p = p.vista                     # objetos reconstruídos a partir do heap
     pilha, fila = p.estado["pilha"], p.estado["fila"]
     topo = p.topo.funcao
     cv = Canvas()

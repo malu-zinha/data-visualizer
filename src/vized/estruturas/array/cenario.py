@@ -35,6 +35,7 @@ def desenhar_array(foto):
 
 
 def desenhar(p):
+    p = p.vista                     # objetos reconstruídos a partir do heap
     loc = locais_de(p, "bubble_sort")
     vals, n = loc["v"], len(loc["v"])
     if p.evento == "return" and p.topo.funcao == "bubble_sort":
