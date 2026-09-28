@@ -20,11 +20,11 @@ Use um terminal com pelo menos 130 colunas.
     vized exemplos/bubble.py --max-passos 500    # limite da linha do tempo (padrão 2000)
 
 Mostra o arquivo com a linha atual, a pilha de chamadas, as variáveis
-globais e locais, e o que o `print()` escreveu até aquele passo. Laços
+globais e locais, o que o `print()` escreveu até aquele passo e, à direita,
+a memória desenhada como caixas e setas. Laços
 infinitos param no limite de passos; um erro no programa não perde os
 passos gravados até ele; `input()` recebe fim de arquivo (não há teclado
-durante a gravação). O desenho da memória para código qualquer ainda não
-existe (etapa 3 do roteiro).
+durante a gravação).
 
 ## Organização
 
@@ -38,6 +38,8 @@ existe (etapa 3 do roteiro).
     │   ├── layout.py           # árvore, floresta, composição lado a lado
     │   ├── cenario.py          # o contrato Cenario (preparar/executar/desenhar)
     │   └── memoria.py          # textos do painel de memória
+    ├── renderizadores/
+    │   └── generico.py         # qualquer heap: caixas e setas
     ├── estruturas/
     │   ├── __init__.py         # registro: a ordem aqui é a ordem das abas
     │   └── <estrutura>/
@@ -66,6 +68,8 @@ Uma estrutura pode ter vários cenários (ex.: inserir, remover, buscar).
 - `tests/test_desenhos.py`: o desenho de pontos da linha do tempo não mudou.
 - `tests/test_cli.py`: `vized arquivo.py` (globais, limite, erros, saída, interface).
 - `tests/test_heap.py`: o heap achatado (ciclos, sets, slots, opacos, JSON).
+- `tests/test_generico.py`: caixas e setas para qualquer programa (+ snapshots em
+  `tests/snapshots/generico/`).
 
 ## Página web
 

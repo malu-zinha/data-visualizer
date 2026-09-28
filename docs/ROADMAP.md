@@ -86,7 +86,7 @@ Os cenários à mão leem `passo.vista` (objetos reconstruídos do heap) e
 comparam tipos por nome. O reuso de `id()` entre passos fica para a etapa 5,
 onde importa.
 
-## Etapa 3 — renderizador genérico (caixas e setas)
+## Etapa 3 — renderizador genérico (caixas e setas) ✅
 
 `renderizadores/generico.py`: desenha qualquer heap como caixas de objeto com
 seus campos, e setas para referências. É a rede de segurança: qualquer
@@ -94,6 +94,14 @@ programa fica visualizável, mesmo que feio.
 
 Pronto quando: um programa arbitrário (ex.: dicionário de listas de objetos)
 é desenhado sem erro.
+
+Como ficou: colunas por profundidade na busca em largura; cada objeto tenta
+ficar na altura da primeira seta que chega nele; cada seta tem sua raia
+vertical e as junções (`┼`, `┴`...) saem das direções acumuladas por célula.
+Seta só para a coluna seguinte — ciclos, auto-referências e alvos na mesma
+coluna viram `@xxxx` escrito. Um título nunca fica na linha de onde sai a
+seta de outra caixa (senão as duas se fundiriam). Limites: 60 objetos,
+12 itens por caixa. Exemplo novo: `exemplos/turma.py`.
 
 ## Etapa 4 — detecção de forma + renderizadores especializados
 
