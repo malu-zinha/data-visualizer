@@ -12,7 +12,7 @@ import sys
 
 from vized.nucleo.cenario import Cenario
 from vized.nucleo.rastreador import filtro_arquivos
-from vized.renderizadores import generico
+from vized.renderizadores.automatico import Desenhista
 
 MAX_PASSOS = 2000                  # laços longos: a linha do tempo para aqui
 
@@ -33,17 +33,21 @@ def executar_arquivo(caminho):
 
 def cenario_do_arquivo(caminho, max_passos=MAX_PASSOS):
     """Um Cenario que rastreia o arquivo inteiro, do começo ao fim."""
-    return Cenario(
+    cenario = Cenario(
         nome=os.path.basename(caminho),
         operacao=f"python {caminho}",
         preparar=dict,                         # nada a preparar: o arquivo faz tudo
         executar=lambda _estado: executar_arquivo(caminho),
-        desenhar=generico.desenhar,            # caixas e setas, para qualquer heap
+        desenhar=None,                         # definido logo abaixo
         filtro=filtro_arquivos(caminho),       # grava só as linhas deste arquivo
         max_passos=max_passos,
         com_globais=True,                      # num script, quase tudo é global
         arquivo=os.path.abspath(caminho),
     )
+    # detecta as formas (lista, árvore...) olhando TODOS os passos, e desenha
+    # cada uma com o renderizador especializado; o resto fica em caixas e setas
+    cenario.desenhar = Desenhista(lambda: cenario.passos)
+    return cenario
 
 
 def main(argv=None):
