@@ -1,9 +1,13 @@
 """Interface textual: código executando à esquerda, estrutura à direita.
 
 Uso:
-    python -m vized
+    python -m vized                      # cenários prontos
+    python -m vized programa.py          # qualquer arquivo (ver cli.py)
 Teclas: ← → estrutura · n/p próximo/anterior · espaço play/pausa · r reinicia · q sai
 """
+import linecache
+import os
+
 from rich.syntax import Syntax
 from rich.text import Text
 from textual.app import App, ComposeResult
@@ -54,6 +58,13 @@ class VisualizadorApp(App):
         border-title-color: $secondary;
         padding: 0 1;
     }
+    #saida {
+        height: auto;
+        max-height: 8;
+        border: round $success;
+        border-title-color: $success;
+        padding: 0 1;
+    }
     #palco { border: round $primary; border-title-color: $primary; padding: 1 2; }
     #desenho { width: auto; }
     #status { height: 1; padding: 0 1; background: $boost; }
@@ -68,9 +79,9 @@ class VisualizadorApp(App):
         Binding("q", "quit", "sair"),
     ]
 
-    def __init__(self):
+    def __init__(self, cenarios=None):
         super().__init__()
-        self.cenarios = CENARIOS
+        self.cenarios = CENARIOS if cenarios is None else cenarios   # padrão: abas prontas
         for c in self.cenarios:
             _ = c.passos                         # grava as linhas do tempo antes de abrir
         self.atual = 0                           # cenário (aba) ativo
@@ -85,6 +96,7 @@ class VisualizadorApp(App):
             with Vertical(id="lateral"):
                 yield Static(id="codigo")        # função atual com a linha destacada
                 yield Static(id="memoria")       # pilha de chamadas + variáveis
+                yield Static(id="saida")         # o que o print() escreveu até aqui
             with ScrollableContainer(id="palco"):
                 yield Static(id="desenho")       # a estrutura naquele instante
         yield Static(id="status")
@@ -94,6 +106,9 @@ class VisualizadorApp(App):
         # timer do modo play: começa pausado e chama avancar() a cada 0,45 s
         self.timer = self.set_interval(0.45, self.avancar, pause=True)
         self.redesenhar()
+
+    def on_resize(self):
+        self.redesenhar()                        # a janela do código depende da altura
 
     # ── troca de aba ──────────────────────────────────────────────────────
     def on_tabs_tab_activated(self, evento: Tabs.TabActivated):
@@ -148,19 +163,30 @@ class VisualizadorApp(App):
         cenario = self.cenarios[self.atual]
         passo = cenario.passos[self.indice]
         topo = passo.topo
+        no_modulo = topo.funcao == "<module>"   # executando no nível do arquivo
 
-        # 1) código: só a função no topo da pilha, com a linha atual destacada
-        linhas, primeira = fonte(topo.codigo)
+        # 1) código com a linha atual destacada
         codigo = self.query_one("#codigo", Static)
-        codigo.update(Syntax("".join(linhas), "python", theme="monokai",
-                             line_numbers=True, start_line=primeira,
-                             highlight_lines={topo.linha}, background_color="default"))
-        codigo.border_title = f"{topo.funcao}()"
-        codigo.border_subtitle = (f"retornando na linha {topo.linha}"
-                                  if passo.evento == "return"
-                                  else f"vai executar a linha {topo.linha}")
+        if cenario.arquivo:
+            codigo.update(self.janela_do_arquivo(cenario.arquivo, topo.linha, codigo))
+            codigo.border_title = (os.path.basename(cenario.arquivo) if no_modulo
+                                   else f"{os.path.basename(cenario.arquivo)} · {topo.funcao}()")
+        else:                                    # cenários: só a função do topo da pilha
+            linhas, primeira = fonte(topo.codigo)
+            codigo.update(Syntax("".join(linhas), "python", theme="monokai",
+                                 line_numbers=True, start_line=primeira,
+                                 highlight_lines={topo.linha}, background_color="default"))
+            codigo.border_title = f"{topo.funcao}()"
+        if passo.evento == "return" and no_modulo:
+            # o módulo também "retorna" quando uma exceção escapa dele
+            codigo.border_subtitle = (f"parou com erro na linha {topo.linha}"
+                                      if cenario.erro is not None else "fim do programa")
+        elif passo.evento == "return":
+            codigo.border_subtitle = f"retornando na linha {topo.linha}"
+        else:
+            codigo.border_subtitle = f"vai executar a linha {topo.linha}"
 
-        # 2) memória: pilha de chamadas (base → topo) e variáveis do topo
+        # 2) memória: pilha de chamadas (base → topo), globais e locais do topo
         mem = Text(no_wrap=True, overflow="ellipsis")
         mem.append("pilha de chamadas\n", style="bold")
         for k, q in enumerate(passo.quadros):
@@ -168,22 +194,57 @@ class VisualizadorApp(App):
             mem.append(f"{'▶ ' if no_topo else '  '}{'  ' * k}{q.funcao}()",
                        style="bold yellow" if no_topo else "")
             mem.append(f"  linha {q.linha}\n", style="bright_black")
-        mem.append("\nvariáveis locais\n", style="bold")
-        for nome, valor in topo.locais.items():
-            mem.append(f"  {nome}", style="bold cyan")
-            mem.append(f" = {resumo(valor, passo)}\n")
-        if passo.evento == "return":
+        if passo.globais:                        # só existe no modo arquivo
+            mem.append("\nvariáveis globais\n", style="bold")
+            self.escrever_variaveis(mem, passo.globais, passo)
+        if not no_modulo:                        # no nível do arquivo, locais = globais
+            mem.append("\nvariáveis locais\n", style="bold")
+            self.escrever_variaveis(mem, topo.locais, passo)
+        if passo.evento == "return" and not no_modulo:
             mem.append("  retorna", style="bold green")
             mem.append(f" {resumo(passo.retorno, passo)}\n")
         memoria = self.query_one("#memoria", Static)
         memoria.update(mem)
         memoria.border_title = "memória"
 
-        # 3) estrutura, desenhada a partir da cópia daquele instante
+        # 3) saída do print(): só o que já tinha sido escrito NESTE passo
+        saida = self.query_one("#saida", Static)
+        saida.display = bool(cenario.saida)      # painel some se o programa não imprime
+        if cenario.saida:
+            ate_aqui = cenario.saida[:passo.saida].splitlines()[-6:]   # últimas linhas
+            saida.update(Text("\n".join(ate_aqui)) if ate_aqui
+                         else Text("(nada ainda)", style="bright_black"))
+            saida.border_title = "saída"
+
+        # 4) estrutura, desenhada a partir da cópia daquele instante
         self.query_one("#desenho", Static).update(para_text(cenario.desenhar(passo)))
         self.query_one("#palco").border_title = cenario.operacao
 
-        # 4) barra de status
+        # 5) barra de status, com avisos de como a execução terminou
         estado = "▶ tocando" if self.tocando else "❚❚ pausado"
-        self.query_one("#status", Static).update(
-            f"passo {self.indice + 1}/{len(cenario.passos)}     {estado}")
+        status = Text(f"passo {self.indice + 1}/{len(cenario.passos)}     {estado}")
+        if cenario.cortado:
+            status.append(f"     ⚠ parou no limite de {cenario.max_passos} passos"
+                          " (--max-passos)", style="bold yellow")
+        if cenario.erro is not None:
+            status.append(f"     ✖ o programa terminou com erro: "
+                          f"{type(cenario.erro).__name__}: {cenario.erro}", style="bold red")
+        self.query_one("#status", Static).update(status)
+
+    @staticmethod
+    def escrever_variaveis(mem, variaveis, passo):
+        for nome, valor in variaveis.items():
+            mem.append(f"  {nome}", style="bold cyan")
+            mem.append(f" = {resumo(valor, passo)}\n")
+
+    @staticmethod
+    def janela_do_arquivo(caminho, linha, widget):
+        """O arquivo inteiro não cabe: mostra a janela de linhas em volta da atual."""
+        linhas = linecache.getlines(caminho)     # lê (e guarda) o arquivo
+        altura = widget.content_size.height or 30   # 0 antes do primeiro layout
+        # centraliza a linha atual, sem passar do começo nem do fim do arquivo
+        inicio = max(1, min(linha - altura // 2, len(linhas) - altura + 1))
+        fim = min(len(linhas), inicio + altura - 1)
+        return Syntax("".join(linhas), "python", theme="monokai",
+                      line_numbers=True, line_range=(inicio, fim),
+                      highlight_lines={linha}, background_color="default")
