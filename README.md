@@ -58,7 +58,7 @@ cd data-visualizer
 Se já tem, só entre na pasta dele. Por exemplo:
 
 ```bash
-cd ~/Desktop/data-visualizer-repo/data-visualizer
+cd ~/projetos/data-visualizer-repo/data-visualizer
 ```
 
 A partir daqui, todos os comandos são digitados **dentro dessa pasta**.
@@ -100,7 +100,7 @@ A tela do visualizador abre. Aperte `n` algumas vezes para avançar e
 O ambiente virtual precisa ser ativado de novo em cada janela de terminal:
 
 ```bash
-cd ~/Desktop/data-visualizer-repo/data-visualizer    # a pasta do projeto
+cd ~/projetos/data-visualizer-repo/data-visualizer    # a pasta do projeto
 source .venv/bin/activate                            # Windows: .venv\Scripts\activate
 ```
 
