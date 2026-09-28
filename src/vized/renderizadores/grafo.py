@@ -62,10 +62,14 @@ def _rotulos_da_matriz(passo, ident, n):
     return list(range(n))
 
 
-def desenhar_matriz(passo, est):
-    """Matriz (retangular) ou matriz de adjacência (quadrada de 0/1)."""
+def desenhar_matriz(passo, est, d):
+    """Matriz (retangular) ou matriz de adjacência (quadrada de 0/1).
+
+    Célula que acabou de mudar sai como "novo".
+    """
     heap = passo.heap
-    linhas = [[r[1] for r in heap[r[1]]["itens"]] for r in heap[est.raiz]["itens"]]
+    internas = [r[1] for r in heap[est.raiz]["itens"]]           # endereço de cada linha
+    linhas = [[r[1] for r in heap[i]["itens"]] for i in internas]
     de_adjacencia = est.forma == "matriz_adjacencia"
     em_foco = valores_do_topo(passo)
     cv = Canvas()
@@ -77,6 +81,8 @@ def desenhar_matriz(passo, est):
             return "foco" if rotulos[i] in em_foco else "normal"
 
         def tag_celula(i, j, v):
+            if d.mudou(internas[i], j):
+                return "novo"
             if v and rotulos[i] in em_foco:
                 return "destaque"                   # vizinhos do vértice em foco
             return "normal" if v else "fraco"
@@ -85,17 +91,22 @@ def desenhar_matriz(passo, est):
     else:                                           # índices; células com o valor
         espaco = max(3, max(len(texto(v)) for linha in linhas for v in linha) + 1)
         matriz(cv, 2, 3, list(range(len(linhas))), linhas, lambda i: "fraco",
-               lambda i, j, v: "normal", texto, espaco, colunas=list(range(len(linhas[0]))))
+               lambda i, j, v: "novo" if d.mudou(internas[i], j) else "normal",
+               texto, espaco, colunas=list(range(len(linhas[0]))))
     return cv
 
 
-def desenhar_adjacencia(passo, est):
-    """Dicionário vértice → lista de vizinhos."""
+def desenhar_adjacencia(passo, est, d):
+    """Dicionário vértice → lista de vizinhos (vizinho recém-incluído = "novo")."""
     heap, em_foco = passo.heap, valores_do_topo(passo)
-    adj = {k[1]: [r[1] for r in heap[v[1]]["itens"]] for k, v in heap[est.raiz]["pares"]}
+    pares = heap[est.raiz]["pares"]
+    adj = {k[1]: [r[1] for r in heap[v[1]]["itens"]] for k, v in pares}
+    novos = {(k[1], r[1]) for k, v in pares
+             for pos, r in enumerate(heap[v[1]]["itens"]) if d.mudou(v[1], pos)}
     cv = Canvas()
     titulo(cv, est.forma, est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
     adjacencia(cv, 2, 2, adj,
                lambda v: "foco" if v in em_foco else "normal",
-               lambda v, u: "foco" if u in em_foco else "destaque" if v in em_foco else "normal")
+               lambda v, u: ("novo" if (v, u) in novos else "foco" if u in em_foco
+                             else "destaque" if v in em_foco else "normal"))
     return cv

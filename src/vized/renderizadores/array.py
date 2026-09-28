@@ -33,15 +33,19 @@ def celulas(cv, lin, col, textos, tags, largura=4):
 MAX_CELULAS = 30
 
 
-def desenhar_estrutura(passo, est):
-    """Array apontado por variável: células, e "▲ j" nos inteiros que são índices."""
+def desenhar_estrutura(passo, est, d):
+    """Array apontado por variável: células, e "▲ j" nos inteiros que são índices.
+
+    Célula que acabou de mudar (ex.: a troca do bubble sort) sai como "novo".
+    """
     itens = [r[1] for r in passo.heap[est.raiz]["itens"]]
     textos = [texto(x) for x in itens[:MAX_CELULAS]]
     largura = max(4, max(len(t) for t in textos) + 2)
     marcados = indices_do_topo(passo, len(textos))
     cv = Canvas()
     titulo(cv, "array", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
-    tags = ["destaque" if i in marcados else "normal" for i in range(len(textos))]
+    tags = ["novo" if d.mudou(est.raiz, i) else "destaque" if i in marcados else "normal"
+            for i in range(len(textos))]
     centros = celulas(cv, 2, 2, textos, tags, largura)
     if len(itens) > MAX_CELULAS:
         cv.escrever(3, 2 + len(textos) * (largura + 1) + 2, f"… +{len(itens) - MAX_CELULAS}",

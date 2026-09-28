@@ -39,8 +39,11 @@ def caixa_no(cv, lin, col, no, passo, nomes, tag, tag_seta, valor="valor", prox=
 MAX_NOS = 12                              # por cadeia; o resto vira "… +N"
 
 
-def desenhar_estrutura(passo, est):
-    """Lista (dupla ou simples) detectada: uma cadeia por "cabeça"."""
+def desenhar_estrutura(passo, est, d):
+    """Lista (dupla ou simples) detectada: uma cadeia por "cabeça".
+
+    Nó recém-criado e seta religada agora saem com a tag "novo".
+    """
     v, no = passo.vista, est.no
     prox = no.ligacoes[0]
     ant = no.ligacoes[1] if len(no.ligacoes) > 1 else None
@@ -74,7 +77,11 @@ def desenhar_estrutura(passo, est):
             lin += 1
         for k, atual in enumerate(cadeia[:MAX_NOS]):
             col = k * LARGURA_NO
-            caixa_no(cv, lin, col, atual, v, nomes, "normal", "ponteiro",
+            ident = v.enderecos[id(atual)]
+            tag = ("novo" if ident in d.novos
+                   else "destaque" if ident in d.caminho else "normal")
+            seta = "novo" if d.religou(ident, prox) else "ponteiro"
+            caixa_no(cv, lin, col, atual, v, nomes, tag, seta,
                      valor=no.valor or "?", prox=prox)
             seguinte = getattr(atual, prox, None)
             if ant and seguinte is not None and getattr(seguinte, ant, None) is atual:

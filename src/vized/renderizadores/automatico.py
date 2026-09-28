@@ -10,6 +10,7 @@ no genérico.
 """
 from vized.deteccao.formas import detectar, tipos_de_no
 from vized.nucleo.canvas import Canvas
+from vized.nucleo.diferenca import Destaques, destaques
 from vized.nucleo.heap import endereco
 from vized.renderizadores import arvore, array, buckets, generico, grafo, lista, sequencia
 
@@ -46,20 +47,24 @@ def _rotulos(passo, est):
     return rotulos
 
 
-def desenhar(passo, tipos):
-    """Passo → Canvas: estruturas especializadas em cima, genérico embaixo."""
+def desenhar(passo, tipos, d=None):
+    """Passo → Canvas: estruturas especializadas em cima, genérico embaixo.
+
+    d  destaques (o que mudou desde o passo anterior); None = nenhum
+    """
+    d = d or Destaques()
     estruturas = detectar(passo, tipos)
     if not estruturas:
-        return generico.desenhar(passo)
+        return generico.desenhar(passo, destaques=d)
     cv, lin = Canvas(), 0
     ocultos, rotulos = set(), {}
     for est in estruturas:
-        parte = RENDERIZADORES[est.forma](passo, est)
+        parte = RENDERIZADORES[est.forma](passo, est, d)
         cv.colar(parte, lin, 0)
         lin += parte.altura + 1
         ocultos.update(est.objetos)
         rotulos.update(_rotulos(passo, est))
-    cv.colar(generico.desenhar(passo, frozenset(ocultos), rotulos), lin, 0)
+    cv.colar(generico.desenhar(passo, frozenset(ocultos), rotulos, d), lin, 0)
     return cv
 
 
@@ -73,6 +78,7 @@ class Desenhista:
     def __init__(self, obter_passos):
         self._obter_passos = obter_passos
         self._tipos = None
+        self._posicao = None               # id(passo) → índice na linha do tempo
 
     @property
     def tipos(self):
@@ -80,5 +86,13 @@ class Desenhista:
             self._tipos = tipos_de_no(self._obter_passos())
         return self._tipos
 
+    def anterior(self, passo):
+        """O passo antes deste (None no primeiro): base dos destaques de mudança."""
+        passos = self._obter_passos()
+        if self._posicao is None:
+            self._posicao = {id(p): k for k, p in enumerate(passos)}
+        k = self._posicao.get(id(passo), 0)
+        return passos[k - 1] if k > 0 else None
+
     def __call__(self, passo):
-        return desenhar(passo, self.tipos)
+        return desenhar(passo, self.tipos, destaques(self.anterior(passo), passo))

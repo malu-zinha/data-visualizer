@@ -21,15 +21,21 @@ def buckets(cv, lin, col, cadeias, tag_indice, tag_item, texto=str):
 
 # ───────────────────────────── fluxo genérico ──────────────────────────────
 
-def desenhar_estrutura(passo, est):
-    """Lista de listas de tamanhos variados: uma cadeia por índice."""
+def desenhar_estrutura(passo, est, d):
+    """Lista de listas de tamanhos variados: uma cadeia por índice.
+
+    Item que acabou de entrar num bucket sai como "novo".
+    """
     heap = passo.heap
-    cadeias = [[r[1] for r in heap[r[1]]["itens"]] for r in heap[est.raiz]["itens"]]
+    internas = [r[1] for r in heap[est.raiz]["itens"]]           # endereço de cada bucket
+    cadeias = [[r[1] for r in heap[i]["itens"]] for i in internas]
     marcados = indices_do_topo(passo, len(cadeias))
     cv = Canvas()
     titulo(cv, "buckets", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    novos = {(k, item) for k, i in enumerate(internas) for pos, item in enumerate(cadeias[k])
+             if d.mudou(i, pos)}
     buckets(cv, 2, 2, cadeias, lambda k: "destaque" if k in marcados else "fraco",
-            lambda k, item: "normal", texto)
+            lambda k, item: "novo" if (k, item) in novos else "normal", texto)
     for k in marcados:                               # ▶ no bucket que um int do topo indica
         cv.escrever(2 + k, 0, "▶", "destaque")
     return cv

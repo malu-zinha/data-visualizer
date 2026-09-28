@@ -97,8 +97,12 @@ def floresta(passo, raizes_conhecidas, tipo, esq="esq", dir="dir"):
 
 # ───────────────────────────── fluxo genérico ──────────────────────────────
 
-def desenhar_estrutura(passo, est):
-    """Árvore detectada (campos de ligação vindos de est.no), com rotação à vista."""
+def desenhar_estrutura(passo, est, d):
+    """Árvore detectada (campos de ligação vindos de est.no), com rotação à vista.
+
+    Cores: foco = apontado por variável do topo; novo = nó recém-criado ou
+    aresta religada agora; destaque = nó seguro por uma chamada em aberto.
+    """
     v, no = passo.vista, est.no
     esq, dir = no.ligacoes
     nos = [v.objetos[i] for i in est.objetos]
@@ -108,9 +112,23 @@ def desenhar_estrutura(passo, est):
     nomes = {id(v.objetos[i]): ns for i, ns in nomes_por_endereco(passo).items()
              if i in v.objetos}
 
+    def ident(n):
+        return v.enderecos[id(n)]
+
+    def tag(n):
+        if id(n) in nomes:
+            return "foco"
+        if ident(n) in d.novos:
+            return "novo"
+        return "destaque" if ident(n) in d.caminho else "normal"
+
+    def tag_aresta(pai, filho):
+        campo = esq if getattr(pai, esq, None) is filho else dir
+        return "novo" if d.religou(ident(pai), campo) else "fraco"
+
     def rotulo(n):
         valor = getattr(n, no.valor, "?") if no.valor else v.endereco(n)
-        pedacos = [(str(valor), "foco" if id(n) in nomes else "normal")]
+        pedacos = [(str(valor), tag(n))]
         # outros campos simples (ex.: altura numa AVL) aparecem entre parênteses
         extras = [str(x) for campo, x in vars(n).items()
                   if campo not in (no.valor, *no.ligacoes)
@@ -121,7 +139,7 @@ def desenhar_estrutura(passo, est):
 
     cv = Canvas()
     titulo(cv, est.forma, detalhe=no.tipo)
-    arvores = [desenhar_arvore(r, rotulo, lambda a, b: "fraco", esq, dir) for r in raizes]
+    arvores = [desenhar_arvore(r, rotulo, tag_aresta, esq, dir) for r in raizes]
     cv.colar(lado_a_lado(arvores), 2, 2)
     base = cv.altura + 1
     legenda = []

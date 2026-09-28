@@ -33,8 +33,12 @@ def marcar(cv, lin, col, indice, nome, largura=5, tag="ponteiro"):
 
 # ───────────────────────────── fluxo genérico ──────────────────────────────
 
-def desenhar_estrutura(passo, est):
-    """Fila (deque): sai pela frente, entra pelo fim."""
+def desenhar_estrutura(passo, est, d):
+    """Fila (deque): sai pela frente, entra pelo fim.
+
+    Só o item que acabou de entrar fica "novo": depois de um popleft todos os
+    índices mudam, e pintar tudo de verde esconderia o que aconteceu.
+    """
     itens = [texto(r[1]) for r in passo.heap[est.raiz]["itens"]]
     cv = Canvas()
     titulo(cv, "fila", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
@@ -42,7 +46,11 @@ def desenhar_estrutura(passo, est):
         cv.escrever(2, 2, "(vazia)", "fraco")
         return cv
     largura = max(5, max(len(t) for t in itens) + 2)
-    vetor(cv, 2, 2, itens, ["normal"] * len(itens), largura)
+    tags = ["normal"] * len(itens)
+    # append: só o fim muda. popleft: tudo desliza e o começo também muda.
+    if d.mudou(est.raiz, len(itens) - 1) and (len(itens) == 1 or not d.mudou(est.raiz, 0)):
+        tags[-1] = "novo"
+    vetor(cv, 2, 2, itens, tags, largura)
     marcar(cv, 6, 2, 0, "frente (sai)", largura)
     marcar(cv, 7, 2, len(itens) - 1, "fim (entra)", largura)
     return cv
