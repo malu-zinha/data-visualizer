@@ -40,8 +40,8 @@ def para_text(canvas):
 
 
 class VisualizadorApp(App):
-    TITLE = "vized"
-    SUB_TITLE = "código Python e memória, passo a passo"
+    TITLE = "Visualizador de execução Python"
+    SUB_TITLE = "código e memória, passo a passo"
     CSS = """
     #corpo { height: 1fr; }
     #lateral { width: 68; }
