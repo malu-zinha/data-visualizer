@@ -14,9 +14,22 @@ aparece à direita.
 Teclas: ← → estrutura · n / p próximo/anterior · espaço play/pausa · r reinicia · q sai.
 Use um terminal com pelo menos 130 colunas.
 
+### Um arquivo qualquer
+
+    vized exemplos/bubble.py                     # roda o arquivo linha a linha
+    vized exemplos/bubble.py --max-passos 500    # limite da linha do tempo (padrão 2000)
+
+Mostra o arquivo com a linha atual, a pilha de chamadas, as variáveis
+globais e locais, e o que o `print()` escreveu até aquele passo. Laços
+infinitos param no limite de passos; um erro no programa não perde os
+passos gravados até ele; `input()` recebe fim de arquivo (não há teclado
+durante a gravação). O desenho da memória para código qualquer ainda não
+existe (etapa 3 do roteiro).
+
 ## Organização
 
     src/vized/
+    ├── cli.py                  # `vized` e `vized arquivo.py`
     ├── nucleo/                 # compartilhado por todas as estruturas
     │   ├── rastreador.py       # sys.settrace: um snapshot por linha executada
     │   ├── canvas.py           # grade de caracteres com tags semânticas
@@ -31,7 +44,7 @@ Use um terminal com pelo menos 130 colunas.
     └── interface/
         └── app_textual.py
 
-Só os arquivos `estruturas/*/codigo.py` são rastreados. Eles não importam
+Nos cenários, só os arquivos `estruturas/*/codigo.py` são rastreados. Eles não importam
 nada do visualizador: são o código que se escreveria numa aula.
 
 ### Adicionar uma estrutura
@@ -49,6 +62,7 @@ Uma estrutura pode ter vários cenários (ex.: inserir, remover, buscar).
 
 - `tests/test_codigo.py`: as estruturas funcionam (independe do visualizador).
 - `tests/test_desenhos.py`: o desenho de pontos da linha do tempo não mudou.
+- `tests/test_cli.py`: `vized arquivo.py` (globais, limite, erros, saída, interface).
 
 ## Página web
 

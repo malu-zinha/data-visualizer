@@ -6,15 +6,17 @@ Visualizar no terminal, passo a passo, **qualquer código Python**: o código
 roda linha a linha num painel e a memória (estruturas de dados, referências,
 pilha de chamadas) aparece desenhada ao lado.
 
-Estado atual: a interface e o motor de rastreio funcionam, mas as
-visualizações são **escritas à mão por estrutura** (`src/vized/estruturas/*/cenario.py`).
-O próximo passo é a versão genérica descrita em `docs/ROADMAP.md`.
+Estado atual: a interface e o motor de rastreio funcionam; `vized arquivo.py`
+já rastreia qualquer arquivo (código + memória em texto + saída), mas os
+**desenhos** ainda são escritos à mão por estrutura (`src/vized/estruturas/*/cenario.py`).
+O caminho para a versão genérica está em `docs/ROADMAP.md` (etapa 1 concluída).
 
 ## Comandos
 
 ```bash
 pip install -e ".[dev]"            # instala em modo editável + pytest
 vized                              # abre a interface (ou: python -m vized)
+vized exemplos/bubble.py           # rastreia um arquivo qualquer (--max-passos N)
 pytest                             # testes de corretude e snapshots
 VIZED_ATUALIZAR=1 pytest tests/test_desenhos.py   # regrava snapshots (só após mudança intencional)
 pip install -e ".[web]" && python web/gerar_pagina.py   # gera web/passo-a-passo.html (Linux/macOS)
@@ -24,11 +26,15 @@ Terminal com pelo menos 130 colunas para a interface.
 
 ## Arquitetura
 
+- `src/vized/cli.py` — `vized` (cenários) e `vized arquivo.py` (monta um
+  `Cenario` que roda o arquivo com `runpy.run_path`).
 - `src/vized/nucleo/rastreador.py` — executa sob `sys.settrace`; o evento
   `line` dispara ANTES de a linha executar. Cada `Passo` guarda a pilha de
-  chamadas e uma cópia das variáveis (um único `deepcopy` com memo
-  compartilhado, para preservar quem aponta para quem) e um mapa
-  id(cópia) → id(original), usado para endereços `@xxxx` estáveis.
+  chamadas, as globais do arquivo (modo arquivo) e uma cópia das variáveis
+  (um único `deepcopy` com memo compartilhado, para preservar quem aponta
+  para quem) e um mapa id(cópia) → id(original), usado para endereços
+  `@xxxx` estáveis. O que não se copia vira `Opaco`. `rastrear` devolve um
+  `Rastreio` (passos, erro, cortado) — erros do programa não estouram.
 - `nucleo/canvas.py` — grade de caracteres com **tags semânticas**
   (`novo`, `destaque`, `foco`, `ponteiro`...). O desenho nunca escolhe cor;
   a interface traduz tag → estilo.

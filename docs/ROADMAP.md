@@ -18,7 +18,7 @@ fluxo genérico deve mostrar a rotação tão bem quanto `estruturas/avl/cenario
 
 ---
 
-## Etapa 1 — linha de comando para um arquivo qualquer
+## Etapa 1 — linha de comando para um arquivo qualquer ✅
 
 - `src/vized/cli.py`: `vized caminho/programa.py` executa o arquivo com
   `runpy.run_path` sob o rastreador.
