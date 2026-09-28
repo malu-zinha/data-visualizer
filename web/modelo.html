@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>python -m vized</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pagina:#d9dde2; --tinta:#2a3038; --suave:#5f6873; --botao:#f4f6f8; --borda:#b8c0c9;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --pagina:#0b0c0e; --tinta:#d6dbe1; --suave:#8a939d; --botao:#1b1e22; --borda:#30353c; } }
+:root[data-theme="dark"]{ --pagina:#0b0c0e; --tinta:#d6dbe1; --suave:#8a939d; --botao:#1b1e22; --borda:#30353c; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--pagina);color:var(--tinta);font:14px/1.4 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+main{max-width:1400px;margin:0 auto;padding:20px 16px 32px}
+.janela{border-radius:10px;overflow:hidden;background:#121212;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid #2b2b2b}
+.barra{height:28px;background:#2b2b2b;display:flex;align-items:center;padding:0 12px;gap:7px;position:relative}
+.barra i{width:11px;height:11px;border-radius:50%;display:block}
+.barra i:nth-child(1){background:#ff5f57}.barra i:nth-child(2){background:#febc2e}.barra i:nth-child(3){background:#28c840}
+.barra span{position:absolute;left:0;right:0;text-align:center;color:#a8a8a8;font-size:12px;pointer-events:none}
+#tela{padding:6px 8px;overflow:hidden;cursor:default;outline:none}
+#tela .r{white-space:pre;height:1.25em;line-height:1.25em}
+#tela .c{display:inline-block;width:1ch;text-align:center;overflow:hidden;vertical-align:top}
+#tela .b{font-weight:700}
+.controles{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.controles button{font:inherit;font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid var(--borda);background:var(--botao);color:var(--tinta);cursor:pointer;min-width:40px}
+.controles input{flex:1;min-width:140px;accent-color:#0178d4}
+button:focus-visible,input:focus-visible,#tela:focus-visible{outline:2px solid #0178d4;outline-offset:2px}
+.dica{color:var(--suave);font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+  <div class="janela">
+    <div class="barra"><i></i><i></i><i></i><span>python -m vized</span></div>
+    <div id="tela" tabindex="0" aria-label="tela do terminal"></div>
+  </div>
+  <div class="controles">
+    <button id="b-rei" title="reinicia (r)">⏮</button>
+    <button id="b-ant" title="anterior (p)">◀</button>
+    <button id="b-play" title="play/pausa (espaço)">▶</button>
+    <button id="b-prox" title="próximo (n)">▶▶</button>
+    <input type="range" id="tempo" min="0" value="0" aria-label="linha do tempo">
+  </div>
+  <p class="dica">Mesmas teclas do terminal: ← → estrutura, n/p passo, espaço play/pausa, r reinicia. Clique nas abas da tela para trocar.</p>
+</main>
+<script>
+const D = __DADOS__;
+const tela = document.getElementById("tela");
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+// caracteres fora de ASCII, latim acentuado e desenho de caixa podem vir de outra
+// fonte com outra largura: cada um ganha uma célula fixa de 1ch, como no terminal
+const fixo = /[^\u0000-\u024F\u2500-\u259F]/gu;
+const celula = t => esc(t).replace(fixo, ch => `<span class="c">${ch}</span>`);
+const css = D.estilos.map(([fg, bg, b]) => `color:${fg};background:${bg}` + (b ? ";font-weight:700" : ""));
+const htmlLinha = D.linhas.map(runs => runs.map(([t, s]) => `<span style="${css[s]}">${celula(t)}</span>`).join(""));
+
+let atual = 0, indice = 0, timer = null;
+try { const s = JSON.parse(localStorage.getItem("term") || "null"); if (s) { atual = s.a; indice = s.i; } } catch (e) {}
+if (!(atual < D.quadros.length)) atual = 0;
+if (!(indice < D.quadros[atual].length)) indice = 0;
+
+// posições das abas na linha 1 da tela, para aceitar clique
+const nomes = ["Array","Lista encadeada","Pilha e fila","Árvore binária de busca","AVL","Grafo e BFS","Tabela hash"];
+const textoAbas = D.linhas[D.quadros[0][0][1]].map(r => r[0]).join("");
+const faixas = nomes.map(n => { const i = textoAbas.indexOf(n); return [i, i + n.length]; });
+
+function desenhar(){
+  const ids = D.quadros[atual][indice];
+  const linhas = ids.map(i => htmlLinha[i]);
+  if (timer) {                                   // no terminal, o status muda durante o play
+    const y = D.H - 2;
+    linhas[y] = D.linhas[ids[y]].map(([t, s]) =>
+      `<span style="${css[s]}">${celula(t.replace("❚❚ pausado", "▶ tocando "))}</span>`).join("");
+  }
+  tela.innerHTML = linhas.map(l => `<div class="r">${l}</div>`).join("");
+  const r = document.getElementById("tempo");
+  r.max = D.quadros[atual].length - 1; r.value = indice;
+  document.getElementById("b-play").textContent = timer ? "❚❚" : "▶";
+  try { localStorage.setItem("term", JSON.stringify({a: atual, i: indice})); } catch (e) {}
+}
+function pausar(){ if (timer) { clearInterval(timer); timer = null; } }
+function mover(d){ indice = Math.max(0, Math.min(D.quadros[atual].length - 1, indice + d)); desenhar(); }
+function trocar(c){ pausar(); atual = (c + D.quadros.length) % D.quadros.length; indice = 0; desenhar(); }
+function play(){
+  if (timer) { pausar(); desenhar(); return; }
+  if (indice >= D.quadros[atual].length - 1) indice = 0;
+  timer = setInterval(() => {                    // mesmo intervalo do app: 0,45 s
+    if (indice >= D.quadros[atual].length - 1) { pausar(); desenhar(); } else mover(1);
+  }, 450);
+  desenhar();
+}
+
+// ajusta a fonte para as 132 colunas caberem na largura disponível
+function ajustar(){
+  const teste = document.createElement("span");
+  teste.style.cssText = "position:absolute;visibility:hidden;white-space:pre;font:100px 'JetBrains Mono',ui-monospace,monospace";
+  teste.textContent = "M".repeat(50);
+  document.body.appendChild(teste);
+  const larguraPorPx = teste.getBoundingClientRect().width / 50 / 100;
+  teste.remove();
+  const disponivel = tela.clientWidth - 16;
+  const tamanho = Math.min(15, Math.max(5, disponivel / (D.W * larguraPorPx)));
+  tela.style.fontSize = tamanho.toFixed(2) + "px";
+}
+
+tela.addEventListener("click", e => {
+  const linha = e.target.closest(".r");
+  if (!linha || [...tela.children].indexOf(linha) !== 1) return;
+  const col = Math.floor((e.clientX - linha.getBoundingClientRect().left) / (linha.getBoundingClientRect().width / D.W));
+  const k = faixas.findIndex(([a, b]) => a >= 0 && col >= a - 1 && col <= b);
+  if (k >= 0) trocar(k);
+});
+document.getElementById("b-rei").onclick = () => { pausar(); indice = 0; desenhar(); };
+document.getElementById("b-ant").onclick = () => { pausar(); mover(-1); };
+document.getElementById("b-prox").onclick = () => { pausar(); mover(1); };
+document.getElementById("b-play").onclick = play;
+document.getElementById("tempo").oninput = e => { pausar(); indice = +e.target.value; desenhar(); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" && e.key.startsWith("Arrow")) return;
+  if (e.key === "ArrowRight") trocar(atual + 1);
+  else if (e.key === "ArrowLeft") trocar(atual - 1);
+  else if (e.key === "n") { pausar(); mover(1); }
+  else if (e.key === "p") { pausar(); mover(-1); }
+  else if (e.key === " ") { e.preventDefault(); play(); }
+  else if (e.key === "r") { pausar(); indice = 0; desenhar(); }
+});
+window.addEventListener("resize", ajustar);
+if (document.fonts) document.fonts.ready.then(ajustar);
+ajustar();
+desenhar();
+</script>
+</body>
+</html>

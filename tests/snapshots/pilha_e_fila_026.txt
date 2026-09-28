@@ -1,0 +1,11 @@
+ Pilha                  Fila circular (capacidade 5)
+        ┌──────┐
+topo →  │  16  │           0     1     2     3     4
+        ├──────┤        ┌─────┬─────┬─────┬─────┬─────┐
+        │  15  │        │  F  │  B  │  C  │  D  │  E  │
+        ├──────┤        └─────┴─────┴─────┴─────┴─────┘
+        │  8   │                             ▲ ini
+        ├──────┤                 ▲ fim
+        │  4   │
+        └──────┘        tamanho = 3
+                        cinza = sobra antiga, fora da fila

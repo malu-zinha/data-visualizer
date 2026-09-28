@@ -1,0 +1,8 @@
+         20(-1)
+     ┌──────┴─────────────┐
+   10(0)                40(0)
+                   ┌──────┴──────┐
+                 30(0)         50(0)
+
+  variáveis: n → 20
+  entre parênteses: fator de balanceamento
