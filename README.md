@@ -21,7 +21,14 @@ Use um terminal com pelo menos 130 colunas.
 
 Mostra o arquivo com a linha atual, a pilha de chamadas, as variáveis
 globais e locais, o que o `print()` escreveu até aquele passo e, à direita,
-a memória desenhada como caixas e setas. Laços
+a memória desenhada: listas, árvores, matrizes, grafos, buckets, arrays e
+filas são reconhecidos pela forma (não pelos nomes) e ganham desenho
+próprio; o resto aparece como caixas e setas. Verde = acabou de nascer ou
+mudar; amarelo = seguro por uma chamada em aberto (ex.: o caminho de uma
+recursão).
+
+Exemplos prontos em `exemplos/`: `bubble`, `turma`, `lista_encadeada`,
+`bst`, `avl`, `grafo`, `hash`, `pilha_fila`. Laços
 infinitos param no limite de passos; um erro no programa não perde os
 passos gravados até ele; `input()` recebe fim de arquivo (não há teclado
 durante a gravação).
@@ -35,11 +42,16 @@ durante a gravação).
     │   ├── heap.py             # memória → {endereço: descrição rasa} (JSON)
     │   ├── vista.py            # heap → objetos leves, para os desenhos
     │   ├── canvas.py           # grade de caracteres com tags semânticas
-    │   ├── layout.py           # árvore, floresta, composição lado a lado
+    │   ├── diferenca.py        # o que mudou entre dois passos (destaques)
+    │   ├── layout.py           # ler variáveis do passo, compor lado a lado
     │   ├── cenario.py          # o contrato Cenario (preparar/executar/desenhar)
     │   └── memoria.py          # textos do painel de memória
+    ├── deteccao/
+    │   └── formas.py           # lista? árvore? matriz? (pelo grafo do heap)
     ├── renderizadores/
-    │   └── generico.py         # qualquer heap: caixas e setas
+    │   ├── automatico.py       # escolhe o desenho de cada forma detectada
+    │   ├── generico.py         # qualquer heap: caixas e setas
+    │   └── arvore.py, lista.py, array.py, sequencia.py, grafo.py, buckets.py
     ├── estruturas/
     │   ├── __init__.py         # registro: a ordem aqui é a ordem das abas
     │   └── <estrutura>/
@@ -70,6 +82,9 @@ Uma estrutura pode ter vários cenários (ex.: inserir, remover, buscar).
 - `tests/test_heap.py`: o heap achatado (ciclos, sets, slots, opacos, JSON).
 - `tests/test_generico.py`: caixas e setas para qualquer programa (+ snapshots em
   `tests/snapshots/generico/`).
+- `tests/test_formas.py`: detecção de cada forma e fluxo automático (+ snapshots
+  em `tests/snapshots/automatico/`).
+- `tests/test_diferenca.py`: destaques por diferença entre passos (tags).
 
 ## Página web
 

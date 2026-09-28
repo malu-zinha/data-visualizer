@@ -131,7 +131,7 @@ Os renderizadores vêm do código atual, desacoplados dos nomes:
 
 Casos ambíguos continuam no genérico.
 
-## Etapa 5 — destaques por diferença entre passos
+## Etapa 5 — destaques por diferença entre passos ✅
 
 Os destaques feitos à mão têm equivalentes genéricos:
 
@@ -141,6 +141,14 @@ Os destaques feitos à mão têm equivalentes genéricos:
 | "seta religada" | campo cujo `ref` mudou entre passos |
 | "caminho da BST" | objetos referenciados por frames mais abaixo na pilha |
 | "variável do frame atual" (`foco`) | igual ao atual |
+
+Como ficou (`nucleo/diferenca.py`): cada campo tem uma chave (atributo,
+índice, chave do dict, item do set; variáveis: `("var", nome)`); `mudados`
+são as chaves cujo ref mudou, `religados` as que passaram a apontar para
+outro objeto. Endereço com tipo/forma diferente do passo anterior conta como
+objeto novo (id reaproveitado). Na fila (deque) só o item que entrou fica
+verde: um popleft desloca todos os índices. As tags não mudam o texto, então
+nenhuma snapshot foi regravada; `tests/test_diferenca.py` verifica as tags.
 
 ## Etapa 6 — exemplos como corpus de teste
 
