@@ -1,7 +1,7 @@
 """Gera web/passo-a-passo.html: a tela do app, gravada quadro a quadro.
 
 Roda o app de verdade num pseudo-terminal, aperta "n" em cada passo de cada
-estrutura e grava a tela inteira (caractere, cor, fundo, negrito) com o
+exemplo (exemplos/*.py, uma aba cada) e grava a tela inteira (caractere, cor, fundo, negrito) com o
 emulador de terminal pyte. A página só reexibe essas telas.
 
 Uso (Linux/macOS; o módulo pty não existe no Windows):
@@ -23,7 +23,7 @@ import pyte
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # pasta do projeto
 SRC = os.path.join(RAIZ, "src")
 sys.path.insert(0, SRC)                          # funciona mesmo sem instalar o pacote
-from vized.estruturas import CENARIOS            # noqa: E402  (só para saber quantos passos)
+from vized.cli import cenarios_dos_exemplos      # noqa: E402  (só para saber quantos passos)
 
 W, H = 132, 36                                   # tamanho do terminal virtual
 
@@ -37,7 +37,7 @@ def cor(c, padrao):
 
 
 def main():
-    totais = [len(c.passos) for c in CENARIOS]
+    totais = [len(c.passos) for c in cenarios_dos_exemplos()]
 
     pid, fd = pty.fork()                         # filho roda o app; pai lê a saída
     if pid == 0:
@@ -102,7 +102,7 @@ def main():
     quadros = []
     for c, total in enumerate(totais):
         if c:
-            os.write(fd, b"\x1b[C")              # seta para a direita: próxima estrutura
+            os.write(fd, b"\x1b[C")              # seta para a direita: próximo exemplo
             drenar(2, 0.25)
         seq = [foto()]
         for _ in range(total - 1):
@@ -110,7 +110,7 @@ def main():
             drenar()
             seq.append(foto())
         quadros.append(seq)
-        print(f"estrutura {c + 1}/{len(totais)}: {len(seq)} quadros", flush=True)
+        print(f"exemplo {c + 1}/{len(totais)}: {len(seq)} quadros", flush=True)
     os.write(fd, b"q")                           # fecha o app
     drenar(0.5)
 
