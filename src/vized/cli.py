@@ -10,9 +10,9 @@ import os
 import runpy
 import sys
 
-from vized.nucleo.canvas import Canvas
 from vized.nucleo.cenario import Cenario
 from vized.nucleo.rastreador import filtro_arquivos
+from vized.renderizadores import generico
 
 MAX_PASSOS = 2000                  # laços longos: a linha do tempo para aqui
 
@@ -31,15 +31,6 @@ def executar_arquivo(caminho):
         sys.path[:] = path_antigo      # devolve o sys.path como estava
 
 
-def desenho_provisorio(passo):
-    """Painel da direita enquanto não existe o desenho genérico."""
-    cv = Canvas()
-    cv.escrever(0, 0, "Ainda não há desenho para código qualquer.", "titulo")
-    cv.escrever(2, 0, "A memória está no painel à esquerda.", "fraco")
-    cv.escrever(3, 0, "O desenho de caixas e setas chega na etapa 3.", "fraco")
-    return cv
-
-
 def cenario_do_arquivo(caminho, max_passos=MAX_PASSOS):
     """Um Cenario que rastreia o arquivo inteiro, do começo ao fim."""
     return Cenario(
@@ -47,7 +38,7 @@ def cenario_do_arquivo(caminho, max_passos=MAX_PASSOS):
         operacao=f"python {caminho}",
         preparar=dict,                         # nada a preparar: o arquivo faz tudo
         executar=lambda _estado: executar_arquivo(caminho),
-        desenhar=desenho_provisorio,
+        desenhar=generico.desenhar,            # caixas e setas, para qualquer heap
         filtro=filtro_arquivos(caminho),       # grava só as linhas deste arquivo
         max_passos=max_passos,
         com_globais=True,                      # num script, quase tudo é global
