@@ -1,1 +1,1 @@
-"""Peças compartilhadas por todas as estruturas."""
+"""Núcleo: rastreio, heap achatado, diferenças entre passos e canvas."""

@@ -1,8 +1,7 @@
-"""O contrato entre as estruturas e o resto do programa.
+"""Cenario: o que a interface mostra numa aba (uma execução rastreada).
 
 A interface só conhece `Cenario`: nada de árvores, filas ou grafos.
-Cada estrutura exporta uma lista de cenários no seu cenario.py; a linha
-de comando (cli.py) monta um Cenario para o arquivo da usuária.
+A linha de comando (cli.py) monta um Cenario para cada arquivo.
 """
 import io
 import sys
@@ -10,7 +9,7 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from vized.nucleo.rastreador import e_codigo_observado, rastrear
+from vized.nucleo.rastreador import rastrear
 
 
 @dataclass
@@ -21,7 +20,7 @@ class Cenario:
     executar: Callable[[dict], Any]            # a operação rastreada, recebe o estado
     desenhar: Callable[[Any], Any]             # Passo → Canvas
     pular: tuple = ()                          # funções tratadas como "step over"
-    filtro: Callable[[str], bool] = e_codigo_observado   # quais arquivos gravar
+    filtro: Callable[[str], bool] = None       # quais arquivos gravar (obrigatório)
     max_passos: int = None                     # None = sem limite
     com_globais: bool = False                  # grava as globais do arquivo?
     arquivo: str = None                        # arquivo inteiro no painel de código

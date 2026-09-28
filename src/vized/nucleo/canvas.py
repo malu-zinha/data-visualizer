@@ -67,3 +67,12 @@ class Canvas:
     def texto_puro(self):
         """Só os caracteres, sem tags: usado nos testes de snapshot."""
         return "\n".join("".join(t for t, _ in segs).rstrip() for segs in self.linhas())
+
+
+def lado_a_lado(canvases, espaco=6):
+    """Cola os canvases um ao lado do outro, com `espaco` colunas entre eles."""
+    cv, col = Canvas(), 0
+    for c in canvases:
+        cv.colar(c, 0, col)               # cola cada desenho à direita do anterior
+        col += c.largura + espaco
+    return cv

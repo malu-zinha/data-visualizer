@@ -1,13 +1,13 @@
 """Objetos reconstruídos a partir do heap, para quem desenha com atributos.
 
-Os cenários desenham lendo `n.esq`, `g.adj[v]`, `fila.dados[i]`... Em vez de
-reescrevê-los para ler descrições do heap, `reconstruir(passo)` monta
+Alguns desenhos (árvore, lista) ficam mais simples lendo `n.esq`, `n.prox`
+do que descrições do heap. `reconstruir(passo)` monta
 objetos leves com os mesmos campos e a mesma identidade (dois nomes que
 apontavam para o mesmo nó apontam para o mesmo objeto reconstruído).
 
 Os objetos reconstruídos NÃO são da classe original (o heap só guarda o
-nome dela): são de uma classe vazia com o mesmo nome. Por isso a
-verificação de tipo é por nome — `do_tipo(v, "NoAVL")` — e não isinstance.
+nome dela): são de uma classe vazia com o mesmo nome. Por isso tipos se
+comparam por nome, nunca com isinstance da classe original.
 """
 from collections import deque
 from dataclasses import dataclass
@@ -26,11 +26,6 @@ def _classe(nome):
     if nome not in _classes:
         _classes[nome] = type(nome, (Objeto,), {})
     return _classes[nome]
-
-
-def do_tipo(obj, *nomes):
-    """True se obj foi reconstruído de um objeto de uma dessas classes."""
-    return isinstance(obj, Objeto) and type(obj).__name__ in nomes
 
 
 # sequências que viram o próprio tipo; qualquer outra (subclasse) vira list

@@ -1,15 +1,13 @@
-"""Árvores binárias: layout por percurso em ordem e floresta (árvore em pedaços).
+"""Árvores binárias: layout por percurso em ordem, e a árvore em pedaços.
 
-Os campos de ligação são parâmetros (padrão: "esq" e "dir"); no fluxo
-genérico eles vêm da detecção (deteccao/formas.py), não do nome.
+Os campos de ligação são parâmetros; eles vêm da detecção
+(deteccao/formas.py), não do nome dos campos.
 """
-from vized.nucleo.canvas import Canvas
-from vized.nucleo.layout import lado_a_lado
-from vized.nucleo.vista import do_tipo
+from vized.nucleo.canvas import Canvas, lado_a_lado
 from vized.renderizadores.comum import nomes_por_endereco, titulo
 
 
-def desenhar_arvore(raiz, rotulo, tag_aresta, esq="esq", dir="dir"):
+def desenhar_arvore(raiz, rotulo, tag_aresta, esq, dir):
     """Layout por percurso em ordem: a ordem in-order vira a COLUNA do nó.
 
     rotulo(n)          → lista de (texto, tag) para escrever o nó
@@ -59,7 +57,7 @@ def desenhar_arvore(raiz, rotulo, tag_aresta, esq="esq", dir="dir"):
     return cv
 
 
-def raizes_e_compartilhados(nos, esq="esq", dir="dir"):
+def raizes_e_compartilhados(nos, esq, dir):
     """Entre os nós dados: quem ninguém aponta (raízes) e quem tem 2+ pais."""
     pais = {}                             # id(filho) → quantos nós apontam para ele
     for n in nos:
@@ -68,30 +66,6 @@ def raizes_e_compartilhados(nos, esq="esq", dir="dir"):
                 pais[id(f)] = pais.get(id(f), 0) + 1
     raizes = [n for n in nos if id(n) not in pais]   # ninguém aponta para elas
     compartilhados = [n for n in nos if pais.get(id(n), 0) > 1]
-    return raizes, compartilhados
-
-
-def floresta(passo, raizes_conhecidas, tipo, esq="esq", dir="dir"):
-    """Todas as árvores visíveis: das raízes conhecidas E das variáveis locais.
-
-    Durante uma rotação (ou logo após criar um nó), um pedaço pode ficar
-    sem pai; ele vira uma árvore separada no desenho.
-    Devolve (raízes, nós com mais de um pai).
-    """
-    candidatos = [r for r in raizes_conhecidas if r is not None]
-    for q in passo.quadros:
-        candidatos += [v for v in q.locais.values() if do_tipo(v, tipo)]
-    if do_tipo(passo.retorno, tipo):
-        candidatos.append(passo.retorno)
-    nos, pilha = {}, list(candidatos)
-    while pilha:                          # coleta tudo que é alcançável
-        n = pilha.pop()
-        if n is None or id(n) in nos:
-            continue
-        nos[id(n)] = n
-        pilha += [getattr(n, esq, None), getattr(n, dir, None)]
-    raizes, compartilhados = raizes_e_compartilhados(nos.values(), esq, dir)
-    raizes.sort(key=lambda n: (not hasattr(n, "valor"), getattr(n, "valor", 0)))
     return raizes, compartilhados
 
 

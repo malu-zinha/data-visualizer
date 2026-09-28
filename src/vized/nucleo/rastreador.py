@@ -7,7 +7,6 @@ para objetos vivos do programa.
 """
 import functools
 import inspect
-import linecache
 import os
 import sys
 from dataclasses import dataclass, field
@@ -15,18 +14,6 @@ from functools import cached_property
 
 from vized.nucleo.heap import achatar, endereco, ref
 from vized.nucleo.vista import reconstruir
-
-# pasta src/vized/estruturas: só os codigo.py daqui dentro são "código observado"
-PASTA_ESTRUTURAS = os.path.join(os.path.dirname(os.path.dirname(__file__)), "estruturas")
-
-
-@functools.lru_cache(maxsize=None)      # chamado para TODO frame: vale guardar
-def e_codigo_observado(caminho):
-    """True para qualquer estruturas/<nome>/codigo.py."""
-    caminho = os.path.abspath(caminho)
-    return (os.path.basename(caminho) == "codigo.py"
-            and caminho.startswith(os.path.abspath(PASTA_ESTRUTURAS)))
-
 
 def filtro_arquivos(*caminhos):
     """Filtro que aceita só os arquivos dados (ex.: o programa da usuária).
@@ -58,7 +45,7 @@ class Quadro:
     linha: int           # linha atual dentro dela
     locais: dict         # nome → ref (("valor", 3) ou ("ref", endereço))
     arquivo: str         # de onde vem o código...
-    primeira_linha: int  # ...e onde a função começa (para achar o fonte)
+    primeira_linha: int  # ...e onde a função começa
 
 
 @dataclass
@@ -107,8 +94,8 @@ def global_visivel(nome, valor):
                 or inspect.isclass(valor))
 
 
-def rastrear(chamada, capturar=dict, pular=(), filtro=e_codigo_observado,
-             max_passos=None, com_globais=False, medir_saida=None):
+def rastrear(chamada, filtro, capturar=dict, pular=(), max_passos=None,
+             com_globais=False, medir_saida=None):
     """Roda `chamada()` e devolve um Rastreio.
 
     filtro       recebe o caminho do arquivo de um frame; só grava se devolver True
@@ -178,21 +165,3 @@ def rastrear(chamada, capturar=dict, pular=(), filtro=e_codigo_observado,
     finally:
         sys.settrace(None)                      # desliga mesmo se der erro
     return rastreio
-
-
-_cache_fonte = {}
-
-
-def fonte(quadro):
-    """(linhas, primeira_linha) do código do quadro: a função, ou o arquivo todo."""
-    chave = (quadro.arquivo, quadro.primeira_linha, quadro.funcao)
-    if chave not in _cache_fonte:
-        linhas = linecache.getlines(quadro.arquivo)
-        if quadro.funcao == "<module>":
-            _cache_fonte[chave] = (linhas, 1)
-        else:
-            # getblock pega do "def" até onde a indentação termina
-            # (é o que o inspect.getsourcelines faz por dentro)
-            inicio = quadro.primeira_linha
-            _cache_fonte[chave] = (inspect.getblock(linhas[inicio - 1:]), inicio)
-    return _cache_fonte[chave]

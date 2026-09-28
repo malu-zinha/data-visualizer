@@ -1,7 +1,6 @@
 """Nós de lista encadeada: a caixa [valor | prox] com endereço e referências.
 
-Os nomes dos campos são parâmetros (padrão: "valor" e "prox"); no fluxo
-genérico eles vêm da detecção.
+Os nomes dos campos são parâmetros; eles vêm da detecção.
 """
 from vized.nucleo.canvas import Canvas
 from vized.renderizadores.comum import nomes_por_endereco, titulo
