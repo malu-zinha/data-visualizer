@@ -1,113 +1,126 @@
-# vized — veja seu código Python rodando e a memória mudando, passo a passo
+# Visualizador de execução de código Python
 
-O **vized** roda um programa Python e mostra, no terminal, **cada linha
-sendo executada** junto com **um desenho da memória** naquele instante:
-as variáveis, os objetos, quem aponta para quem e a pilha de chamadas.
-Dá para avançar e voltar no tempo, uma linha de cada vez.
+Programa de terminal que executa um arquivo Python e mostra, linha por
+linha:
 
-```
-vized meu_programa.py
-```
+- a linha que vai ser executada;
+- a pilha de chamadas de função;
+- o valor de todas as variáveis;
+- um desenho da memória: objetos, listas, dicionários e as referências
+  entre eles.
 
----
+O programa é executado uma vez, do início ao fim, e cada linha executada
+é gravada. Depois a tela abre e você navega pela gravação, avançando e
+voltando um passo de cada vez.
 
-## Para que serve
-
-Quando a gente estuda programação, boa parte do que importa acontece
-**dentro** da memória, onde não dá para ver: duas variáveis que apontam
-para o mesmo objeto, uma lista alterada dentro de uma função, os nós de
-uma lista encadeada sendo religados, a pilha crescendo numa recursão.
-O vized **desenha** tudo isso.
-
-Ele é útil para:
-
-- **quem está aprendendo** programação ou estruturas de dados: em vez de
-  imaginar o que acontece, você vê;
-- **quem ensina**: dá para mostrar um algoritmo linha por linha, indo e
-  voltando, com a estrutura desenhada ao lado;
-- **quem está depurando um algoritmo pequeno**: dá para ver em que passo
-  uma referência foi parar no lugar errado.
-
-Alguns exemplos do que ele ajuda a entender:
-
-| Dúvida comum | O que o vized mostra |
-|---|---|
-| "Por que minha lista mudou lá fora, se eu só alterei o parâmetro?" | As duas variáveis com setas para a **mesma** lista. |
-| "O que acontece com a pilha numa recursão?" | Uma caixa por chamada em aberto, e o caminho percorrido destacado em amarelo. |
-| "Como o nó novo entra na lista encadeada?" | O nó nascendo solto e, no passo seguinte, a seta sendo religada (em verde). |
-| "O que muda numa rotação de árvore AVL?" | A árvore se partindo em pedaços e se remontando, aresta por aresta. |
-
-A diferença para um depurador comum é que o vized **grava a execução
-inteira** antes de mostrar. Por isso você pode voltar atrás quando quiser.
-Além disso, ele **desenha** a memória, em vez de listar valores.
+Listas encadeadas, árvores binárias, matrizes, grafos (matriz ou lista de
+adjacência), tabelas hash, arrays e filas são reconhecidos pela forma como
+os objetos se ligam e ganham um desenho próprio. O resto é desenhado como
+caixas (objetos) e setas (referências).
 
 ---
 
-## Como funciona
+## Requisitos
 
-Por trás da tela acontecem quatro coisas:
+- Python 3.10 ou mais novo
+- git (só para baixar o projeto)
+- Terminal com pelo menos 130 colunas de largura (deixe a janela larga)
 
-1. **Grava.** O vized roda o seu programa uma vez, do começo ao fim. A
-   cada linha, antes de ela executar, anota a pilha de chamadas e o
-   conteúdo de todas as variáveis. Isso acontece **antes** de a tela
-   abrir. Depois você só navega pela gravação.
-2. **Fotografa a memória.** Cada objeto vira uma descrição com um
-   endereço (`@ee70`). O mesmo objeto tem o mesmo endereço em todos os
-   passos, e é assim que se vê que duas variáveis apontam para a mesma coisa.
-3. **Reconhece formas.** Pelo jeito como os objetos se ligam, e **não**
-   pelos nomes, o vized percebe que aquilo é uma lista encadeada, uma
-   árvore, uma matriz, um grafo... Um objeto com um campo que aponta para
-   outro objeto do mesmo tipo é uma lista encadeada, chame-se o campo
-   `prox`, `next` ou `zz`.
-4. **Desenha e compara.** Cada forma reconhecida ganha um desenho próprio.
-   O que não tem forma conhecida aparece como caixas e setas. Por fim, o
-   passo é comparado com o anterior para colorir o que acabou de mudar.
+Os comandos abaixo são para macOS e Linux. No Windows, as diferenças estão
+indicadas nos comentários.
 
 ---
 
-## Instalação, passo a passo
+## Instalação (uma vez só)
 
-Você precisa de:
+**1. Abra o Terminal.** No macOS: `Cmd + Espaço`, digite `Terminal` e
+aperte Enter.
 
-- **Python 3.10 ou mais novo** (confira com `python3 --version`);
-- **git**;
-- um **terminal com pelo menos 130 colunas** (deixe a janela larga):
-  Terminal ou iTerm no macOS, qualquer terminal no Linux, Windows Terminal
-  no Windows.
-
-No terminal:
+**2. Confira a versão do Python:**
 
 ```bash
-# 1. baixe o projeto
-git clone https://github.com/malu-zinha/data-visualizer.git
-cd data-visualizer
-
-# 2. crie um ambiente virtual (uma pasta isolada para as dependências)
-python3 -m venv .venv
-
-# 3. ative o ambiente (repita este passo sempre que abrir um terminal novo)
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-
-# 4. instale o vized
-pip install -e ".[dev]"
-
-# 5. confira
-vized --help
+python3 --version
 ```
 
-Se o `vized --help` mostrou a ajuda, está tudo pronto. Para abrir os
-exemplos que vêm com o projeto, rode só `vized`.
+Tem que aparecer `Python 3.10` ou maior. Se aparecer um número menor ou
+um erro, instale o Python pelo site https://www.python.org/downloads/ e
+repita o comando.
+
+**3. Entre na pasta do projeto.**
+
+Se você ainda não tem o projeto no computador, baixe e entre na pasta:
+
+```bash
+git clone https://github.com/malu-zinha/data-visualizer.git
+cd data-visualizer
+```
+
+Se já tem, só entre na pasta dele. Por exemplo:
+
+```bash
+cd ~/Desktop/data-visualizer-repo/data-visualizer
+```
+
+A partir daqui, todos os comandos são digitados **dentro dessa pasta**.
+
+**4. Crie o ambiente virtual.** É uma pasta `.venv` onde ficam as
+dependências do projeto, separadas do resto do sistema:
+
+```bash
+python3 -m venv .venv
+```
+
+**5. Ative o ambiente virtual:**
+
+```bash
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+```
+
+O começo da linha do terminal passa a mostrar `(.venv)`.
+
+**6. Instale o programa e as dependências:**
+
+```bash
+pip install -e .
+```
+
+**7. Teste com um dos exemplos que vêm no projeto:**
+
+```bash
+vized exemplos/bubble.py
+```
+
+A tela do visualizador abre. Aperte `n` algumas vezes para avançar e
+`q` para sair. A instalação está pronta.
 
 ---
 
-## Primeiro uso: um exemplo completo
+## Toda vez que abrir um terminal novo
 
-### 1. Escreva um programa
+O ambiente virtual precisa ser ativado de novo em cada janela de terminal:
 
-Crie um arquivo `meu_programa.py` com uma lista encadeada que recebe
-três números, sempre inserindo no início:
+```bash
+cd ~/Desktop/data-visualizer-repo/data-visualizer    # a pasta do projeto
+source .venv/bin/activate                            # Windows: .venv\Scripts\activate
+```
 
-```python
+---
+
+## Como executar o seu próprio código
+
+**1. Crie um arquivo `.py` com o código.**
+
+O arquivo pode ficar em qualquer pasta. O mais simples é criá-lo **dentro
+da pasta do projeto**, ao lado da pasta `exemplos/`.
+
+Use um editor de código, como o VS Code. Não use o TextEdit do macOS:
+ele troca as aspas e o Python não entende.
+
+Outra opção é criar o arquivo direto pelo terminal. Copie e cole o bloco
+inteiro abaixo (da linha `cat` até a linha `FIM`) e aperte Enter:
+
+```bash
+cat > meu_programa.py <<'FIM'
 class No:
     def __init__(self, valor):
         self.valor = valor
@@ -124,24 +137,58 @@ lista = None
 for x in [3, 2, 1]:
     lista = inserir_no_inicio(lista, x)
 print("pronto!")
+FIM
 ```
 
-Ele é um programa Python comum: não precisa importar nada do vized, e
-roda com `python meu_programa.py` também.
+Isso cria o arquivo `meu_programa.py` na pasta atual. Para conferir:
+`cat meu_programa.py`.
 
-### 2. Rode com o vized
+O arquivo é um programa Python normal: não precisa importar nada do
+visualizador e também roda com `python3 meu_programa.py`.
+
+**2. Execute com o visualizador.** Com o ambiente virtual ativado:
 
 ```bash
 vized meu_programa.py
 ```
 
-### 3. Entenda a tela
+Se o arquivo estiver em outra pasta, passe o caminho completo:
 
-Esta é a tela de verdade no passo 22 de 36: o programa está dentro de
-`inserir_no_inicio`, inserindo o 2, e vai executar `novo.prox = cabeca`.
+```bash
+vized /Users/seu_usuario/Documentos/aula/exercicio.py
+```
+
+No macOS, dá para arrastar o arquivo do Finder para dentro da janela do
+Terminal: o caminho completo é colado sozinho.
+
+**3. Navegue pela execução** com as teclas abaixo e saia com `q`.
+
+---
+
+## Teclas
+
+| Tecla | Ação |
+|---|---|
+| `n` | próximo passo |
+| `p` | passo anterior |
+| `espaço` | avança sozinho (um passo a cada ~0,5 s); de novo, pausa |
+| `r` | volta ao primeiro passo |
+| `←` `→` | troca de aba (quando há mais de um arquivo aberto) |
+| `q` | sai |
+
+Se o desenho não couber no painel da direita, role com o mouse ou o
+trackpad.
+
+---
+
+## O que aparece na tela
+
+Tela real do `meu_programa.py` acima, no passo 22 de 36. O programa está
+dentro de `inserir_no_inicio`, inserindo o valor 2, e a próxima linha a
+executar é `novo.prox = cabeca`:
 
 ```
- ⭘                                        vized — código Python e memória, passo a passo
+ ⭘                              Visualizador de execução Python — código e memória, passo a passo
  meu_programa.py
 ╸━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ╭─ meu_programa.py · inserir_no_inicio() ──────────────────────────╮╭─ python meu_programa.py ─────────────────────────────────────╮
@@ -179,27 +226,19 @@ Esta é a tela de verdade no passo 22 de 36: o programa está dentro de
  → aba  n próximo  p anterior  space play/pausa  r reinicia  q sair
 ```
 
-Como ler cada parte:
-
-| Onde | O que mostra |
+| Painel | Conteúdo |
 |---|---|
-| **Abas** (topo) | Um programa por aba. Com `vized meu_programa.py` há uma só; com `vized` sem nada, uma por exemplo. |
-| **Código** (esquerda, em cima) | O seu arquivo. A linha marcada com `❱` é a que **vai** executar agora, e ainda não executou. O título diz em que função você está. |
-| **Memória** (esquerda, no meio) | A **pilha de chamadas**: quem chamou quem, com `▶` na função atual. Embaixo, as variáveis **globais** e as **locais** da função atual. Objetos aparecem como `nó 3 @ee70` (tipo, valor e endereço). |
-| **Saída** (esquerda, embaixo) | O que o `print()` já escreveu **até este passo**. |
-| **Desenho** (direita) | A memória desenhada. Aqui, a lista encadeada já com o nó 3, e o nó 2 que acabou de ser criado mas ainda está **solto**: nenhum outro nó aponta para ele. Embaixo de cada nó, `▲` indica quais variáveis apontam para ele. Mais abaixo ficam as caixas de variáveis de cada função em aberto. |
-| **Barra de status** | Em que passo você está, se está tocando ou pausado, e avisos (programa que terminou com erro, limite de passos). |
+| Código (esquerda, em cima) | O arquivo. A linha marcada com `❱` é a que **vai** ser executada; ainda não foi. O título mostra a função atual. |
+| Memória (esquerda, no meio) | A pilha de chamadas (`▶` marca a função atual), as variáveis globais e as variáveis locais da função atual. |
+| Saída (esquerda, embaixo) | O que o `print()` já escreveu até este passo. |
+| Desenho (direita) | A memória. Aqui, a lista com o nó 3 e o nó 2 recém-criado, ainda solto (nenhum nó aponta para ele). `▲` indica as variáveis que apontam para cada nó. Mais abaixo, as variáveis de cada função em aberto. |
+| Barra de baixo | Número do passo e avisos (erro no programa, limite de passos). |
 
-Os endereços (`@ee70`) mudam de uma execução para outra, mas ficam fixos
-durante a execução. O mesmo endereço significa o mesmo objeto.
+`@ee70` é o endereço do objeto na memória. O mesmo endereço em dois
+lugares significa o mesmo objeto. Os endereços mudam a cada execução.
 
-### 4. Ande pelo tempo
-
-Aperte `n` para avançar um passo e `p` para voltar. Veja o que acontece
-com o desenho:
-
-**Passo 23**: `novo.prox = cabeca` executou. O nó 2 passou a apontar para
-o 3, e a seta nova aparece **em verde** no terminal:
+Um passo depois (passo 23), `novo.prox = cabeca` foi executada e o nó 2
+passou a apontar para o nó 3. A seta nova aparece em verde:
 
 ```
 lista encadeada · No
@@ -212,29 +251,7 @@ lista encadeada · No
  ▲ novo         ▲ lista, cabeca
 ```
 
-**Passo 25**: a função retornou e `lista = ...` recebeu o nó 2. Agora é
-`lista` que aponta para ele, e a caixa de `inserir_no_inicio()` sumiu,
-porque a chamada acabou:
-
-```
-lista encadeada · No
-
-┌────┬───┐     ┌────┬───┐
-│ 2  │ ●─┼────▶│ 3  │ ∅ │
-└────┴───┘     └────┴───┘
- @f4a0          @ee70
- prox=@ee70     prox=None
- ▲ lista
-
-variáveis globais
-┌───────────────────┐
-│ lista  nó 2 @f4a0 │
-│ x      2          │
-└───────────────────┘
-```
-
-**Passo 36** (o último): a lista ficou 1 → 2 → 3, e o painel de saída
-mostra `pronto!`:
+No último passo (36), a lista está completa e a saída mostra `pronto!`:
 
 ```
 lista encadeada · No
@@ -247,188 +264,127 @@ lista encadeada · No
  ▲ lista
 ```
 
-Repare que em nenhum momento o vized foi avisado de que aquilo era uma
-lista encadeada: ele percebeu pelo formato dos objetos.
+### Cores
 
-### 5. Saia
-
-Aperte `q`.
+| Cor | Significado |
+|---|---|
+| verde | criado ou alterado neste passo (objeto novo, valor alterado, seta religada) |
+| amarelo | objeto usado por uma chamada de função ainda em aberto (por exemplo, o caminho de uma recursão); em arrays, a posição indicada por uma variável inteira (`▲ j`) |
+| fundo amarelo | objeto apontado por uma variável da função atual; nome da função atual |
+| ciano | referências (setas, `nó 3 @ee70`) |
+| cinza | endereços, índices e bordas |
+| vermelho | alerta (por exemplo, um nó de árvore com dois pais durante uma rotação) |
 
 ---
 
-## Teclas
+## Estruturas reconhecidas
 
-| Tecla | O que faz |
-|---|---|
-| `n` | próximo passo |
-| `p` | passo anterior |
-| `espaço` | toca a execução sozinha (um passo a cada ~0,5 s); de novo, pausa |
-| `r` | volta ao primeiro passo |
-| `←` `→` | troca de aba (quando há mais de um programa aberto) |
-| `q` | sai |
+O reconhecimento usa só a forma dos objetos. O nome das classes e dos
+campos não importa (`prox`, `next`, `esq`, `left`...).
 
-Se o desenho for maior que o painel da direita, role com o mouse ou o trackpad.
-
-## Cores
-
-| Cor | Significa |
-|---|---|
-| **verde** | acabou de nascer ou de mudar neste passo: objeto novo, célula alterada, seta religada |
-| **amarelo** | seguro por uma chamada ainda em aberto (ex.: o caminho de uma recursão numa árvore); em arrays, as posições apontadas por índices (`▲ j`) |
-| **fundo amarelo** | apontado por uma variável da função atual; também o nome da função atual |
-| **ciano** | referências (setas, `nó 3 @ee70`) |
-| **cinza** | detalhes: endereços, índices, bordas |
-| **vermelho** | alerta, ex.: um nó com dois pais no meio de uma rotação |
-
----
-
-## Usando com os seus programas
-
-```bash
-vized caminho/do/programa.py                 # um arquivo seu
-vized caminho/do/programa.py --max-passos 500   # muda o limite de passos (padrão: 2000)
-vized                                        # abre todos os exemplos, uma aba cada
-vized avl                                    # abre só exemplos/avl.py
-```
-
-### Dicas para aproveitar melhor
-
-- **Programas pequenos e focados funcionam melhor.** O vized mostra tudo,
-  passo a passo: um laço de 10 000 voltas vira milhares de passos.
-  Teste o algoritmo com uma entrada pequena, de 5 a 10 elementos.
-- **Deixe as entradas fixas no código**, em vez de usar `input()`.
-- **Os nomes não importam.** Pode chamar os campos de `prox`, `next`,
-  `esquerda` ou como quiser: a forma é reconhecida pelas ligações.
-- **O bloco `if __name__ == "__main__":` roda normalmente.**
-- **Use `print()` à vontade**: a saída aparece no painel de saída,
-  sincronizada com os passos.
-
-### Formas que o vized reconhece
-
-| Forma | Como ele percebe | Desenho |
+| Estrutura | Critério | Desenho |
 |---|---|---|
-| lista encadeada | objeto com **um** campo que aponta para outro do mesmo tipo | caixas `[valor│●]` ligadas por setas |
-| lista duplamente encadeada | **dois** campos assim, e `a.x.y is a` (ida e volta) | caixas com setas `◀───▶` |
-| árvore binária | **dois** campos assim, sem volta | árvore com os valores (outros campos entre parênteses, ex.: altura) |
+| lista encadeada | objeto com um campo que aponta para outro objeto da mesma classe | caixas `[valor│●]` ligadas por setas |
+| lista duplamente encadeada | dois campos assim, com ida e volta (`a.x.y is a`) | caixas com setas `◀───▶` |
+| árvore binária | dois campos assim, sem volta | árvore; outros campos do nó entre parênteses (ex.: altura) |
 | matriz | lista de listas, todas do mesmo tamanho | grade com índices |
-| matriz de adjacência | matriz quadrada só de 0 e 1 | grade com os nomes dos vértices, se houver uma lista deles ao lado |
+| matriz de adjacência | matriz quadrada só com 0 e 1 | grade com o nome dos vértices, se houver uma lista deles no mesmo objeto |
 | lista de adjacência | dicionário `vértice → lista de vértices` | `A → [B] [C]` |
-| buckets (tabela hash) | lista de listas de tamanhos diferentes | `[0] ─▶ [ana] ─▶ [leo]` |
-| array | lista de números/textos apontada por uma variável | células com índice; variáveis inteiras viram `▲ i` embaixo da posição |
-| fila | `collections.deque` apontado por uma variável | células com `frente` e `fim` |
-| qualquer outra coisa | — | **caixas e setas**: uma caixa por objeto, setas para as referências |
+| tabela hash (buckets) | lista de listas de tamanhos diferentes | `[0] ─▶ [ana] ─▶ [leo]` |
+| array | lista de números ou textos apontada diretamente por uma variável | células com índice; variáveis inteiras aparecem como `▲ i` embaixo da posição |
+| fila | `collections.deque` apontado diretamente por uma variável | células com `frente` e `fim` |
+| outros | — | caixas e setas |
 
-### Limites (bom saber)
+---
 
-- **`input()` não funciona**: o programa é gravado antes de a tela abrir,
-  então não há teclado. O `input()` recebe "fim de entrada" (`EOFError`).
-  Troque por um valor fixo.
-- **Só as linhas do seu arquivo aparecem passo a passo.** Módulos que ele
-  importa rodam normalmente, mas por dentro não são mostrados.
-- **Limite de passos**: por padrão, a gravação para em 2000 passos (a
-  barra de status avisa). Um `while True` para ali também. Use
-  `--max-passos N` para mudar.
-- **Erros não perdem nada**: se o programa quebrar, você navega até o
-  passo do erro, e a barra de status mostra a mensagem.
-- **Objetos da biblioteca padrão** (arquivos abertos, datas, `random`...)
-  aparecem pelo texto que o Python mostraria (`datetime.date(2026, 9, 28)`),
-  sem os campos internos.
-- **Desenhos muito grandes são cortados**: até 60 objetos nas caixas e
-  setas, 12 itens por caixa e 30 células por array.
-- **Definir uma classe também é executar código**: nos primeiros passos,
-  enquanto o Python lê o corpo de uma `class No:`, a pilha mostra `No()`.
-- Argumentos de linha de comando para o seu programa (`sys.argv`) ainda
-  não são repassados.
+## Limitações
+
+- **`input()` não funciona.** O programa é executado antes de a tela
+  abrir, sem teclado; `input()` gera `EOFError`. Coloque os valores
+  direto no código.
+- **Só as linhas do arquivo informado aparecem.** Módulos importados são
+  executados, mas as linhas deles não são mostradas.
+- **Limite de 2000 passos.** Depois disso a gravação para e a barra de
+  baixo avisa. Laços infinitos também param aí. Para mudar:
+  `vized meu_programa.py --max-passos 5000`. Prefira entradas pequenas
+  (5 a 10 elementos): cada volta de laço gera vários passos.
+- **Erros no programa:** a gravação vai até a linha do erro, e a mensagem
+  aparece na barra de baixo.
+- **Objetos da biblioteca padrão** (arquivos, datas, `random`...) aparecem
+  como texto (ex.: `datetime.date(2026, 9, 28)`), sem os campos internos.
+- **Tamanho do desenho:** até 60 objetos em caixas e setas, 12 itens por
+  caixa e 30 células por array.
+- **Definição de classes:** o corpo de uma `class` também é executado, por
+  isso nos primeiros passos a pilha mostra, por exemplo, `No()`.
+- Argumentos de linha de comando para o programa (`sys.argv`) não são
+  repassados.
 
 ---
 
 ## Exemplos incluídos
 
-Estão em `exemplos/`. Abra todos com `vized` ou um só pelo nome
-(`vized bst`).
+Ficam na pasta `exemplos/`.
 
-| Exemplo | O que observar |
+```bash
+vized                          # abre todos, um por aba (← → troca de aba)
+vized exemplos/avl.py          # abre um só
+vized avl                      # o mesmo, pelo nome
+```
+
+| Arquivo | Conteúdo |
 |---|---|
-| `bubble` | as trocas no array (em verde) e `▲ passada, j` marcando as posições comparadas |
-| `lista_encadeada` | o nó novo nascendo solto e sendo ligado no fim da lista |
-| `pilha_fila` | uma pilha sobre lista e uma fila circular sobre vetor, com `inicio` e `fim` dando a volta |
-| `bst` | a recursão descendo a árvore: o caminho fica em amarelo |
-| `avl` | as rotações: a árvore se parte em pedaços e se remonta |
-| `grafo` | a BFS com matriz e lista de adjacência, a `fila` e a `ordem` de visita |
-| `hash` | cada chave caindo no seu bucket |
-| `turma` | um dicionário de listas de objetos, desenhado como caixas e setas |
+| `bubble.py` | bubble sort num array |
+| `lista_encadeada.py` | inserção no fim de uma lista encadeada |
+| `pilha_fila.py` | pilha sobre lista e fila circular sobre vetor |
+| `bst.py` | inserção recursiva em árvore binária de busca |
+| `avl.py` | inserção em árvore AVL, com rotações |
+| `grafo.py` | busca em largura (BFS) com matriz e lista de adjacência |
+| `hash.py` | tabela hash com encadeamento |
+| `turma.py` | dicionário de listas de objetos (caixas e setas) |
 
 ---
 
 ## Problemas comuns
 
-| Sintoma | Solução |
+| Problema | Solução |
 |---|---|
-| `command not found: vized` | Ative o ambiente virtual: `source .venv/bin/activate`. |
-| A tela aparece espremida ou cortada | Deixe o terminal mais largo (130 colunas ou mais) ou diminua a fonte. |
-| `pasta exemplos/ não encontrada` | Instale com `pip install -e ".[dev]"` a partir da pasta do projeto, ou passe um arquivo: `vized meu_programa.py`. |
-| A barra diz "parou no limite de passos" | Use uma entrada menor ou aumente o limite: `--max-passos 5000`. |
-| `EOFError` na barra de status | O programa usa `input()`: troque por um valor fixo. |
+| `command not found: vized` | O ambiente virtual não está ativado. Entre na pasta do projeto e rode `source .venv/bin/activate`. |
+| `No such file or directory` / `arquivo não encontrado` | O caminho do arquivo está errado. Confira com `ls` se o arquivo está na pasta atual, ou use o caminho completo. |
+| Tela espremida ou cortada | Aumente a janela do terminal (130 colunas ou mais) ou diminua a fonte (`Cmd -` no macOS). |
+| Barra de baixo diz "parou no limite de passos" | Use uma entrada menor ou aumente o limite com `--max-passos`. |
+| Barra de baixo mostra `EOFError` | O programa usa `input()`. Troque por um valor fixo. |
+| Aparecem arquivos com " 2" no nome (ex.: `hash 2.py`) | A pasta está sincronizada com o iCloud (Mesa/Documentos). Apague as cópias ou mova o projeto para uma pasta fora do iCloud. |
 
 ---
 
-## Para quem vai mexer no código
+## Desenvolvimento
 
-### Organização
+Instalação com as ferramentas de teste:
 
-    src/vized/
-    ├── cli.py                  # `vized`, `vized arquivo.py`, `vized <exemplo>`
-    ├── nucleo/
-    │   ├── rastreador.py       # sys.settrace: um Passo por linha (pilha + variáveis + heap)
-    │   ├── heap.py             # memória → {endereço: descrição rasa} (JSON puro)
-    │   ├── vista.py            # heap → objetos leves (para desenhar com n.esq)
-    │   ├── diferenca.py        # o que mudou entre dois passos (cores)
-    │   ├── canvas.py           # grade de caracteres com tags semânticas
-    │   ├── cenario.py          # uma execução gravada = uma aba
-    │   └── memoria.py          # textos do painel de memória
-    ├── deteccao/
-    │   └── formas.py           # regras de forma, olhando só o grafo dos objetos
-    ├── renderizadores/
-    │   ├── automatico.py       # escolhe o desenho de cada forma detectada
-    │   ├── generico.py         # qualquer memória: caixas e setas
-    │   └── arvore.py, lista.py, array.py, sequencia.py, grafo.py, buckets.py
-    └── interface/
-        └── app_textual.py      # a tela (feita com textual)
+```bash
+pip install -e ".[dev]"
+pytest                                            # todos os testes
+VIZED_ATUALIZAR=1 pytest tests/test_desenhos.py   # regrava os desenhos esperados (só após mudança intencional)
+```
 
-O fluxo é `rastrear → achatar → detectar forma → desenhar → destacar`.
-O desenho nunca escolhe cor: ele marca trechos com tags (`novo`,
-`destaque`, `foco`...), e a interface traduz cada tag em estilo.
+Estrutura do código (`src/vized/`):
 
-### Testes
+| Pasta/arquivo | Função |
+|---|---|
+| `cli.py` | linha de comando |
+| `nucleo/rastreador.py` | executa o programa com `sys.settrace` e grava um passo por linha |
+| `nucleo/heap.py` | registra a memória de cada passo: `{endereço: descrição do objeto}` |
+| `nucleo/diferenca.py` | compara um passo com o anterior (cores) |
+| `deteccao/formas.py` | reconhece as estruturas |
+| `renderizadores/` | desenha cada estrutura; `generico.py` desenha caixas e setas |
+| `interface/app_textual.py` | a tela (biblioteca textual) |
 
-    pytest                                             # tudo
-    VIZED_ATUALIZAR=1 pytest tests/test_desenhos.py    # regrava snapshots (só após mudança intencional)
+Os testes em `tests/test_desenhos.py` executam cada arquivo de `exemplos/`
+e comparam o desenho com os arquivos em `tests/snapshots/`. Um arquivo
+novo em `exemplos/` entra automaticamente nos testes e nas abas.
 
-- `tests/test_desenhos.py`: cada exemplo, pelo fluxo completo, desenha igual
-  às snapshots em `tests/snapshots/`.
-- `tests/test_codigo.py`: os exemplos funcionam (independe do visualizador).
-- `tests/test_cli.py`: `vized arquivo.py` (globais, limite, erros, saída, interface).
-- `tests/test_heap.py`: a "fotografia" da memória (ciclos, sets, slots, JSON).
-- `tests/test_generico.py`: caixas e setas para qualquer programa
-  (+ snapshots em `tests/snapshots/generico/`).
-- `tests/test_formas.py`: reconhecimento de cada forma.
-- `tests/test_diferenca.py`: as cores de "o que mudou".
+`python web/gerar_pagina.py` (requer `pip install -e ".[web]"`, só
+macOS/Linux) grava a tela de todos os exemplos e gera
+`web/passo-a-passo.html`, que abre no navegador.
 
-Para acrescentar um exemplo, crie `exemplos/<nome>.py`. Ele vira uma aba do
-`vized` e entra nos testes de snapshot (a primeira execução do `pytest`
-grava as snapshots dele).
-
-### Página web
-
-    pip install -e ".[web]"
-    python web/gerar_pagina.py        # Linux/macOS (usa o módulo pty)
-
-Roda o app num terminal virtual, grava a tela a cada passo de cada exemplo
-e gera `web/passo-a-passo.html`, que abre em qualquer navegador.
-
-### Histórico
-
-O caminho de "desenhos feitos à mão para cada estrutura" até "qualquer
-código" está em [`docs/ROADMAP.md`](docs/ROADMAP.md): etapas 1 a 6, cada
-uma com uma tag `etapa-N` no git. `exemplos/comparacao-ferramentas/`
-guarda a primeira versão, comparando ANSI, rich e curses.
+O histórico do desenvolvimento está em `docs/ROADMAP.md`.
