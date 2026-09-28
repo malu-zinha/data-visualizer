@@ -19,6 +19,7 @@ from collections import deque
 from dataclasses import dataclass, field
 
 from vized.nucleo.canvas import Canvas
+from vized.nucleo.diferenca import GLOBAIS, Destaques, conteudo
 from vized.nucleo.heap import endereco
 
 MAX_OBJETOS = 60        # a partir daqui, objetos não são desenhados
@@ -38,6 +39,7 @@ class Linha:
     alvo: int = None               # endereço de destino, se a linha tem seta
     tag_rotulo: str = "normal"
     tag_valor: str = "normal"
+    chave: object = None           # que "campo" é este (ver nucleo/diferenca.py)
 
 
 @dataclass
@@ -47,6 +49,8 @@ class Caixa:
     celulas: list = None           # desenho deitado: textos das células
     com_indices: bool = True       # índices embaixo das células (set não tem)
     ident: int = None              # endereço do objeto (None = caixa de variáveis)
+    dono: object = None            # de quem são as chaves: endereço, GLOBAIS ou ("quadro", k)
+    chaves_celulas: list = None    # chave de cada célula, no desenho deitado
     x: int = 0
     y: int = 0                     # linha do título
 
@@ -145,7 +149,14 @@ def _linha(rotulo, r, prof_origem, prof, rotulos):
 
 def _caixa_do_objeto(ident, heap, prof, rotulos):
     caixa = _montar_caixa(ident, heap, prof, rotulos)
-    caixa.ident = ident
+    caixa.ident = caixa.dono = ident
+    # cada linha/célula sabe qual campo mostra, para os destaques de mudança
+    chaves = list(conteudo(heap[ident]))[:MAX_ITENS]
+    if caixa.celulas is not None:
+        caixa.chaves_celulas = chaves
+    else:
+        for linha, chave in zip(caixa.linhas, chaves):
+            linha.chave = chave
     return caixa
 
 
@@ -180,15 +191,16 @@ def _caixas_de_variaveis(passo, prof, rotulos):
     """Coluna 0: globais, estado (cenários) e uma caixa por chamada de função."""
     caixas = []
 
-    def caixa(titulo, variaveis, tag_nome="normal", extra=()):
+    def caixa(titulo, variaveis, tag_nome="normal", extra=(), dono=None):
         linhas = [_linha(nome, r, 0, prof, rotulos) for nome, r in variaveis.items()]
-        for l in linhas:
+        for l, nome in zip(linhas, variaveis):
             l.tag_rotulo = tag_nome
+            l.chave = ("var", nome)
         linhas += list(extra)
         if linhas:
-            caixas.append(Caixa(titulo, linhas))
+            caixas.append(Caixa(titulo, linhas, dono=dono))
 
-    caixa([("variáveis globais", "titulo")], passo.globais)
+    caixa([("variáveis globais", "titulo")], passo.globais, dono=GLOBAIS)
     caixa([("estado", "titulo")], passo.estado)
     for k, q in enumerate(passo.quadros):
         if q.funcao == "<module>":
@@ -200,14 +212,20 @@ def _caixas_de_variaveis(passo, prof, rotulos):
             ret.tag_rotulo = "ok"
             extra.append(ret)
         caixa([(f"{q.funcao}()", "foco" if no_topo else "titulo")], q.locais,
-              "destaque" if no_topo else "normal", extra)
+              "destaque" if no_topo else "normal", extra, dono=("quadro", k))
     return caixas
 
 
 # ───────────────────────────── desenho ─────────────────────────────────────
 
-def _escrever_caixa(cv, c):
-    cv.trechos(c.y, c.x, c.titulo)
+def _escrever_caixa(cv, c, d):
+    """Escreve a caixa; `d` (Destaques) pinta o que é novo ou mudou."""
+    titulo = list(c.titulo)
+    if c.ident in d.novos:
+        titulo[0] = (titulo[0][0], "novo")                # objeto que acabou de nascer
+    elif c.ident in d.caminho:
+        titulo[0] = (titulo[0][0], "destaque")            # seguro por uma chamada em aberto
+    cv.trechos(c.y, c.x, titulo)
     if c.celulas is not None:                             # deitada: │ 5 │ 2 │ 9 │
         larguras = [len(t) + 2 for t in c.celulas]
         cv.escrever(c.y + 1, c.x, "┌" + "┬".join("─" * w for w in larguras) + "┐", "fraco")
@@ -215,7 +233,9 @@ def _escrever_caixa(cv, c):
         col = c.x
         for i, (texto, w) in enumerate(zip(c.celulas, larguras)):
             cv.escrever(c.y + 2, col, "│", "fraco")
-            cv.escrever(c.y + 2, col + 1, texto.center(w))
+            chave = c.chaves_celulas[i] if i < len(c.chaves_celulas or []) else None
+            cv.escrever(c.y + 2, col + 1, texto.center(w),
+                        "novo" if d.mudou(c.dono, chave) else "normal")
             if texto != "…" and c.com_indices:
                 cv.escrever(c.y + 4, col + 1, str(i).center(w), "fraco")   # índice
             col += w + 1
@@ -230,10 +250,11 @@ def _escrever_caixa(cv, c):
         if c.larg_rotulo:
             cv.escrever(lin, col, l.rotulo, l.tag_rotulo)
             col += c.larg_rotulo + 2
-        cv.escrever(lin, col, l.valor, l.tag_valor)
+        mudou = d.mudou(c.dono, l.chave)
+        cv.escrever(lin, col, l.valor, "novo" if mudou else l.tag_valor)
         if l.alvo is not None:                            # ●──── até a borda: a seta sai dali
             fim = c.x + w - 1
-            cv.escrever(lin, col + 1, "─" * (fim - col), "ponteiro")
+            cv.escrever(lin, col + 1, "─" * (fim - col), "novo" if mudou else "ponteiro")
         else:
             cv.escrever(lin, c.x + w - 1, "│", "fraco")
     cv.escrever(c.y + 2 + len(c.linhas), c.x, "└" + "─" * (w - 2) + "┘", "fraco")
@@ -260,9 +281,12 @@ class _Setas:
     def __init__(self):
         self.direcoes = {}                                # (lin, col) → set de direções
         self.pontas = set()                               # onde vai "▶"
+        self.novas = set()                                # células de setas religadas agora
+        self._atual = None                                # células da seta sendo traçada
 
     def _marcar(self, lin, col, d):
         self.direcoes.setdefault((lin, col), set()).add(d)
+        self._atual.add((lin, col))
 
     def horizontal(self, lin, xa, xb):
         a, b = min(xa, xb), max(xa, xb)
@@ -276,26 +300,34 @@ class _Setas:
             self._marcar(y, col, S)
             self._marcar(y + 1, col, N)
 
-    def seta(self, lin_origem, x_origem, x_raia, lin_alvo, x_alvo):
-        """Sai para a direita, desce/sobe na raia, entra no alvo com ▶."""
+    def seta(self, lin_origem, x_origem, x_raia, lin_alvo, x_alvo, nova=False):
+        """Sai para a direita, desce/sobe na raia, entra no alvo com ▶.
+
+        nova=True: a referência acabou de mudar (seta religada) → tag "novo".
+        """
+        self._atual = set()
         self._marcar(lin_origem, x_origem, O)             # continua o ●──── da caixa
         self.horizontal(lin_origem, x_origem, x_raia)
         self.vertical(x_raia, lin_origem, lin_alvo)
         self.horizontal(lin_alvo, x_raia, x_alvo - 2)
         self.pontas.add((lin_alvo, x_alvo - 2))           # "▶ título"
+        if nova:
+            self.novas |= self._atual | {(lin_alvo, x_alvo - 2)}
 
     def desenhar(self, cv):
+        def tag(celula):
+            return "novo" if celula in self.novas else "ponteiro"
         for (lin, col), ds in self.direcoes.items():
-            cv.escrever(lin, col, _JUNCOES.get(frozenset(ds), "┼"), "ponteiro")
+            cv.escrever(lin, col, _JUNCOES.get(frozenset(ds), "┼"), tag((lin, col)))
         for lin, col in self.pontas:
-            cv.escrever(lin, col, "▶", "ponteiro")
+            cv.escrever(lin, col, "▶", tag((lin, col)))
 
 
 @dataclass
 class Montagem:
     """Onde cada coisa vai; separado do desenho para poder ser testado."""
     colunas: list          # [[Caixa]], coluna 0 = variáveis
-    setas: list            # [(linha de origem, x de origem, x da raia, endereço do alvo)]
+    setas: list            # [(linha de origem, x de origem, x da raia, alvo, (dono, chave))]
     caixa_de: dict         # endereço → Caixa
     cortou: bool           # passou de MAX_OBJETOS?
 
@@ -351,14 +383,19 @@ def montar(passo, ocultos=frozenset(), rotulos=None):
         origens = {lin: l.alvo for lin, c, l in saindo}
         for raia, (lin, c, l) in enumerate(saindo):
             chegando.setdefault(l.alvo, lin)              # a 1ª (mais alta) decide
-            setas_pendentes.append((lin, c.x + c.largura_caixa, x + largura + 1 + raia, l.alvo))
+            setas_pendentes.append((lin, c.x + c.largura_caixa, x + largura + 1 + raia, l.alvo,
+                                    (c.dono, l.chave)))
         x += largura + len(saindo) + 3                    # caixas + raias + "▶ "
 
     return Montagem(colunas, setas_pendentes, caixa_de, len(ordem) >= MAX_OBJETOS)
 
 
-def desenhar(passo, ocultos=frozenset(), rotulos=None):
-    """Passo (JSON) → Canvas com caixas e setas (ver `montar`)."""
+def desenhar(passo, ocultos=frozenset(), rotulos=None, destaques=None):
+    """Passo (JSON) → Canvas com caixas e setas (ver `montar`).
+
+    destaques  o que mudou desde o passo anterior (nucleo/diferenca.py); None = nada
+    """
+    d = destaques or Destaques()
     m = montar(passo, ocultos, rotulos)
     cv = Canvas()
     if not any(m.colunas):
@@ -366,13 +403,13 @@ def desenhar(passo, ocultos=frozenset(), rotulos=None):
         return cv
     # setas primeiro; as caixas são escritas por cima
     setas = _Setas()
-    for lin, x_origem, x_raia, alvo in m.setas:
+    for lin, x_origem, x_raia, alvo, (dono, chave) in m.setas:
         destino = m.caixa_de[alvo]
-        setas.seta(lin, x_origem, x_raia, destino.y, destino.x)
+        setas.seta(lin, x_origem, x_raia, destino.y, destino.x, nova=d.religou(dono, chave))
     setas.desenhar(cv)
     for coluna in m.colunas:
         for c in coluna:
-            _escrever_caixa(cv, c)
+            _escrever_caixa(cv, c, d)
     if m.cortou:
         cv.escrever(cv.altura + 1, 0, f"(só os {MAX_OBJETOS} primeiros objetos foram desenhados)",
                     "fraco")

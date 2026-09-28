@@ -42,10 +42,10 @@ def test_setas_nao_se_confundem():
     """Regras que mantêm as setas legíveis, em todos os passos conhecidos."""
     for p in todos_os_passos():
         m = montar(p)
-        raias = [raia for _, _, raia, _ in m.setas]
+        raias = [raia for _, _, raia, _, _ in m.setas]
         assert len(raias) == len(set(raias))            # cada seta tem sua raia vertical
-        for lin, _, _, alvo in m.setas:
-            for _, _, _, outro in m.setas:
+        for lin, _, _, alvo, _ in m.setas:
+            for _, _, _, outro, _ in m.setas:
                 destino = m.caixa_de[outro]
                 if outro != alvo and destino.x == m.caixa_de[alvo].x:
                     # nenhuma seta sai na linha onde OUTRA seta entra
