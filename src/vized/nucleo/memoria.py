@@ -1,9 +1,13 @@
 """Texto curto para mostrar valores no painel de memória."""
 from collections import deque
 
+from vized.nucleo.rastreador import Opaco
+
 
 def resumo(valor, passo, largura=34):
-    if hasattr(valor, "__dict__") and type(valor).__name__.startswith("No"):
+    if isinstance(valor, Opaco):
+        s = repr(valor)                                                     # não copiável
+    elif hasattr(valor, "__dict__") and type(valor).__name__.startswith("No"):
         s = f"nó {getattr(valor, 'valor', '?')} {passo.endereco(valor)}"    # nós: valor + endereço
     elif isinstance(valor, deque):
         s = f"deque({list(valor)})"

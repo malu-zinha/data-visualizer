@@ -28,6 +28,7 @@ def normalizar(texto):
 
 @pytest.mark.parametrize("cenario", CENARIOS, ids=lambda c: slug(c.nome))
 def test_todos_os_passos_desenham(cenario):
+    assert cenario.erro is None                 # o rastreio guarda o erro em vez de estourar
     for passo in cenario.passos:                # nenhum passo pode quebrar o desenho
         cenario.desenhar(passo)
 
