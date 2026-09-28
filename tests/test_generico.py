@@ -10,7 +10,6 @@ from pathlib import Path
 import pytest
 
 from vized.cli import cenario_do_arquivo
-from vized.estruturas import CENARIOS
 from vized.renderizadores.generico import MAX_ITENS, MAX_OBJETOS, desenhar, montar
 
 RAIZ = Path(__file__).parent.parent
@@ -20,9 +19,7 @@ ATUALIZAR = os.environ.get("VIZED_ATUALIZAR") == "1"
 
 
 def todos_os_passos():
-    """Passos dos cenários à mão e dos exemplos: o genérico tem de aguentar todos."""
-    for c in CENARIOS:
-        yield from c.passos
+    """Passos de todos os exemplos: o genérico tem de aguentar todos."""
     for arquivo in EXEMPLOS:
         yield from cenario_do_arquivo(str(arquivo)).passos
 

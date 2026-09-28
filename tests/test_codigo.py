@@ -1,15 +1,31 @@
-"""As estruturas funcionam? (independe do visualizador)"""
+"""Os exemplos funcionam? (independe do visualizador)
+
+Cada exemplo é um programa completo; aqui ele roda uma vez (runpy) e os
+testes usam as funções e classes que ele define.
+"""
 import random
+import runpy
+from pathlib import Path
 
 random.seed(0)                                  # testes reprodutíveis
 
-from vized.estruturas.array.codigo import bubble_sort
-from vized.estruturas.avl.codigo import inserir_avl
-from vized.estruturas.bst.codigo import inserir_bst
-from vized.estruturas.grafo.codigo import Grafo, bfs
-from vized.estruturas.hash.codigo import TabelaHash
-from vized.estruturas.lista_encadeada.codigo import ListaEncadeada
-from vized.estruturas.pilha_fila.codigo import FilaCircular, Pilha
+EXEMPLOS = Path(__file__).parent.parent / "exemplos"
+
+
+def carregar(nome):
+    """Roda exemplos/<nome>.py e devolve o que ele definiu (funções, classes...)."""
+    return runpy.run_path(str(EXEMPLOS / f"{nome}.py"))
+
+
+bubble_sort = carregar("bubble")["bubble_sort"]
+inserir_avl = carregar("avl")["inserir_avl"]
+inserir_bst = carregar("bst")["inserir_bst"]
+_grafo = carregar("grafo")
+Grafo, bfs = _grafo["Grafo"], _grafo["bfs"]
+TabelaHash = carregar("hash")["TabelaHash"]
+ListaEncadeada = carregar("lista_encadeada")["ListaEncadeada"]
+_pf = carregar("pilha_fila")
+FilaCircular, Pilha = _pf["FilaCircular"], _pf["Pilha"]
 
 
 def em_ordem(n):

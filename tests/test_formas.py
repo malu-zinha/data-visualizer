@@ -1,24 +1,16 @@
 """Detecção de forma + desenhos especializados (etapa 4 do ROADMAP).
 
-Snapshots do fluxo automático em tests/snapshots/automatico/. Para regravar
-após mudança INTENCIONAL:
-    VIZED_ATUALIZAR=1 pytest tests/test_formas.py
+As snapshots do fluxo completo ficam em test_desenhos.py.
 """
-import os
 import re
 from pathlib import Path
 
 import pytest
 
 from vized.cli import cenario_do_arquivo
-from vized.deteccao.formas import detectar, tipos_de_no
-from vized.estruturas import CENARIOS
-from vized.renderizadores.automatico import Desenhista
+from vized.deteccao.formas import detectar
 
 RAIZ = Path(__file__).parent.parent
-EXEMPLOS = sorted((RAIZ / "exemplos").glob("*.py"))
-PASTA = Path(__file__).parent / "snapshots" / "automatico"
-ATUALIZAR = os.environ.get("VIZED_ATUALIZAR") == "1"
 
 
 def programa(tmp_path, codigo):
@@ -76,27 +68,16 @@ def test_tipo_de_no_vale_para_a_linha_do_tempo_inteira(tmp_path):
     assert [e.forma for e in detectar(primeiro, c.desenhar.tipos)] == ["arvore"]
 
 
-def test_cenarios_a_mao_sao_detectados():
-    esperado = {
-        "Array": {"array"}, "Lista encadeada": {"lista"}, "Árvore binária de busca": {"arvore"},
-        "AVL": {"arvore"}, "Grafo e BFS": {"matriz_adjacencia", "lista_adjacencia"},
-        "Tabela hash": {"buckets"},
-    }
-    for c in CENARIOS:
-        tipos = tipos_de_no(c.passos)
-        vistas = {e.forma for p in c.passos for e in detectar(p, tipos)}
-        assert esperado.get(c.nome, set()) <= vistas, c.nome
-
-
-def test_todos_os_passos_desenham_no_fluxo_automatico():
-    for c in CENARIOS:
-        d = Desenhista(lambda c=c: c.passos)
-        for p in c.passos:
-            d(p)
-    for arquivo in EXEMPLOS:
-        c = cenario_do_arquivo(str(arquivo))
-        for p in c.passos:
-            c.desenhar(p)
+@pytest.mark.parametrize("nome, esperado", [
+    ("bubble", {"array"}), ("lista_encadeada", {"lista"}), ("bst", {"arvore"}),
+    ("avl", {"arvore"}), ("grafo", {"matriz_adjacencia", "lista_adjacencia", "fila"}),
+    ("hash", {"buckets"}), ("turma", set()),
+])
+def test_exemplos_sao_detectados(nome, esperado):
+    """Os exemplos (antigos cenários à mão) ganham a forma certa, pelo grafo."""
+    c = cenario_do_arquivo(str(RAIZ / "exemplos" / f"{nome}.py"))
+    vistas = {e.forma for p in c.passos for e in detectar(p, c.desenhar.tipos)}
+    assert esperado <= vistas and (esperado or not vistas)
 
 
 def test_gabarito_avl_mostra_a_rotacao():
@@ -119,20 +100,3 @@ def test_indices_do_array(tmp_path):
     c = programa(tmp_path, "v = [5, 6, 7]\ni = 2\nfim = True\n")   # bool não é índice
     texto = c.desenhar(c.passos[-1]).texto_puro()
     assert re.search(r"▲\s*\n\s*i", texto)      # "▲" e embaixo dele o nome "i"
-
-
-def normalizar(texto):
-    return re.sub(r"@[0-9a-f]{4}", "@····", texto) + "\n"
-
-
-@pytest.mark.parametrize("arquivo", EXEMPLOS, ids=lambda a: a.stem)
-def test_snapshots(arquivo):
-    c = cenario_do_arquivo(str(arquivo))
-    n = len(c.passos)
-    for k in sorted({0, n // 4, n // 2, 3 * n // 4, n - 1}):   # cinco pontos da linha do tempo
-        atual = normalizar(c.desenhar(c.passos[k]).texto_puro())
-        caminho = PASTA / f"{arquivo.stem}_{k:03d}.txt"
-        if ATUALIZAR or not caminho.exists():
-            PASTA.mkdir(parents=True, exist_ok=True)
-            caminho.write_text(atual)
-        assert atual == caminho.read_text(), f"desenho mudou: {caminho.name}"

@@ -8,11 +8,9 @@ from pathlib import Path
 import pytest
 
 from vized.cli import cenario_do_arquivo
-from vized.estruturas import CENARIOS
 from vized.nucleo.heap import achatar, ref
 from vized.nucleo.memoria import resumo
 from vized.nucleo.rastreador import Passo
-from vized.nucleo.vista import do_tipo
 
 RAIZ = Path(__file__).parent.parent
 
@@ -105,7 +103,8 @@ def test_nao_executa_deepcopy_e_sobrevive_a_repr_quebrado():
 
 
 def test_passos_sao_json_puro():
-    for c in [*CENARIOS, cenario_do_arquivo(str(RAIZ / "exemplos" / "bubble.py"))]:
+    for arquivo in sorted((RAIZ / "exemplos").glob("*.py")):
+        c = cenario_do_arquivo(str(arquivo))
         for p in c.passos:
             json.dumps(asdict(p))               # levantaria TypeError se não fosse
 
@@ -122,7 +121,7 @@ def test_vista_preserva_identidade_e_ciclos():
     p = Passo("line", [], {"a": ref(a), "b": ref(a.prox)}, ref(None), achatar([a]))
     v = p.vista
     assert v.estado["a"].prox is v.estado["b"] and v.estado["b"].prox is v.estado["a"]
-    assert do_tipo(v.estado["a"], "No") and not do_tipo(v.estado["a"], "Outro")
+    assert type(v.estado["a"]).__name__ == "No"      # classe vazia com o mesmo nome
     assert v.endereco(v.estado["a"]) == p.endereco(ref(a))
 
 
