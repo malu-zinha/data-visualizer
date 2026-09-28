@@ -117,11 +117,22 @@ def test_interface_modo_arquivo():
     asyncio.run(roteiro())
 
 
-def test_interface_modo_cenarios_continua_igual():
+def test_interface_sem_argumentos_abre_os_exemplos():
     async def roteiro():
         app = VisualizadorApp()
         async with app.run_test(size=(132, 36)) as piloto:
-            await piloto.press("n")
-            assert "variáveis globais" not in texto(app, "#memoria")
-            assert not app.query_one("#saida").display   # cenários não imprimem
+            assert [c.nome for c in app.cenarios][:2] == ["bubble.py", "lista_encadeada.py"]
+            await piloto.press("right")          # próxima aba: a lista encadeada
+            for _ in range(40):
+                await piloto.press("n")
+            assert "lista encadeada" in texto(app, "#desenho")
     asyncio.run(roteiro())
+
+
+def test_atalho_pelo_nome_do_exemplo(monkeypatch):
+    abertos = []
+    monkeypatch.setattr("vized.interface.app_textual.VisualizadorApp.run",
+                        lambda self: abertos.append(self.cenarios))
+    from vized.cli import main
+    main(["avl"])                                # = vized exemplos/avl.py
+    assert [c.nome for c in abertos[0]] == ["avl.py"]

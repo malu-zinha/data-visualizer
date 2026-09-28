@@ -1,8 +1,9 @@
-"""Linha de comando: `vized` abre os cenários; `vized programa.py` rastreia um arquivo.
+"""Linha de comando: `vized programa.py` rastreia um arquivo; `vized` abre os exemplos.
 
 Uso:
-    vized                               # cenários prontos (uma aba por estrutura)
+    vized                               # os exemplos de exemplos/, uma aba cada
     vized exemplos/bubble.py            # qualquer arquivo Python
+    vized avl                           # atalho para exemplos/avl.py
     vized exemplos/bubble.py --max-passos 500
 """
 import argparse
@@ -15,6 +16,13 @@ from vized.nucleo.rastreador import filtro_arquivos
 from vized.renderizadores.automatico import Desenhista
 
 MAX_PASSOS = 2000                  # laços longos: a linha do tempo para aqui
+
+# exemplos/ fica na raiz do repositório (src/vized/cli.py → ../../exemplos);
+# existe quando o vized foi instalado em modo editável (pip install -e .)
+PASTA_EXEMPLOS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              os.pardir, os.pardir, "exemplos")
+# ordem das abas: do mais simples ao mais elaborado; os demais vêm depois
+ORDEM = ["bubble", "lista_encadeada", "pilha_fila", "bst", "avl", "grafo", "hash", "turma"]
 
 
 def executar_arquivo(caminho):
@@ -50,22 +58,42 @@ def cenario_do_arquivo(caminho, max_passos=MAX_PASSOS):
     return cenario
 
 
+def exemplos():
+    """Caminhos dos exemplos, na ordem das abas."""
+    if not os.path.isdir(PASTA_EXEMPLOS):
+        return []
+    nomes = sorted(f[:-3] for f in os.listdir(PASTA_EXEMPLOS) if f.endswith(".py"))
+    nomes.sort(key=lambda n: ORDEM.index(n) if n in ORDEM else len(ORDEM))
+    return [os.path.join(PASTA_EXEMPLOS, n + ".py") for n in nomes]
+
+
+def cenarios_dos_exemplos(max_passos=MAX_PASSOS):
+    return [cenario_do_arquivo(c, max_passos) for c in exemplos()]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="vized",
         description="Mostra no terminal, passo a passo, o código rodando e a memória.")
     parser.add_argument("arquivo", nargs="?",
-                        help="programa Python a visualizar (sem ele: cenários prontos)")
+                        help="programa Python a visualizar, ou o nome de um exemplo "
+                             "(sem ele: todos os exemplos)")
     parser.add_argument("--max-passos", type=int, default=MAX_PASSOS, metavar="N",
                         help=f"para depois de N passos (padrão: {MAX_PASSOS})")
     args = parser.parse_args(argv)
 
+    atalho = os.path.join(PASTA_EXEMPLOS, f"{args.arquivo}.py")
     if args.arquivo is None:
-        cenarios = None                        # a interface usa os cenários prontos
-    elif not os.path.isfile(args.arquivo):
-        parser.error(f"arquivo não encontrado: {args.arquivo}")
-    else:
+        cenarios = cenarios_dos_exemplos(args.max_passos)
+        if not cenarios:
+            parser.error("pasta exemplos/ não encontrada (instale com pip install -e .) "
+                         "— ou passe um arquivo: vized programa.py")
+    elif os.path.isfile(args.arquivo):
         cenarios = [cenario_do_arquivo(args.arquivo, args.max_passos)]
+    elif os.path.isfile(atalho):                   # `vized avl` → exemplos/avl.py
+        cenarios = [cenario_do_arquivo(atalho, args.max_passos)]
+    else:
+        parser.error(f"arquivo não encontrado: {args.arquivo}")
 
     # importado aqui: `vized --help` responde sem carregar o textual
     from vized.interface.app_textual import VisualizadorApp

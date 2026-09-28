@@ -1,9 +1,9 @@
-"""Interface textual: código executando à esquerda, estrutura à direita.
+"""Interface textual: código executando à esquerda, memória desenhada à direita.
 
 Uso:
-    python -m vized                      # cenários prontos
+    python -m vized                      # os exemplos, uma aba cada
     python -m vized programa.py          # qualquer arquivo (ver cli.py)
-Teclas: ← → estrutura · n/p próximo/anterior · espaço play/pausa · r reinicia · q sai
+Teclas: ← → aba · n/p próximo/anterior · espaço play/pausa · r reinicia · q sai
 """
 import linecache
 import os
@@ -15,9 +15,9 @@ from textual.binding import Binding
 from textual.containers import Horizontal, ScrollableContainer, Vertical
 from textual.widgets import Footer, Header, Static, Tab, Tabs
 
-from vized.estruturas import CENARIOS
+from vized.cli import cenarios_dos_exemplos
+
 from vized.nucleo.memoria import resumo
-from vized.nucleo.rastreador import fonte
 
 # Tags do desenho.py → estilos rich (inclui "foco": variável do frame atual)
 ESTILOS = {
@@ -70,8 +70,8 @@ class VisualizadorApp(App):
     #status { height: 1; padding: 0 1; background: $boost; }
     """
     BINDINGS = [
-        Binding("right", "estrutura(1)", "estrutura", priority=True),
-        Binding("left", "estrutura(-1)", "", show=False, priority=True),
+        Binding("right", "aba(1)", "aba", priority=True),
+        Binding("left", "aba(-1)", "", show=False, priority=True),
         Binding("n", "passo(1)", "próximo"),
         Binding("p", "passo(-1)", "anterior"),
         Binding("space", "play", "play/pausa"),
@@ -81,7 +81,8 @@ class VisualizadorApp(App):
 
     def __init__(self, cenarios=None):
         super().__init__()
-        self.cenarios = CENARIOS if cenarios is None else cenarios   # padrão: abas prontas
+        # padrão: uma aba por exemplo de exemplos/
+        self.cenarios = cenarios_dos_exemplos() if cenarios is None else cenarios
         for c in self.cenarios:
             _ = c.passos                         # grava as linhas do tempo antes de abrir
         self.atual = 0                           # cenário (aba) ativo
@@ -98,7 +99,7 @@ class VisualizadorApp(App):
                 yield Static(id="memoria")       # pilha de chamadas + variáveis
                 yield Static(id="saida")         # o que o print() escreveu até aqui
             with ScrollableContainer(id="palco"):
-                yield Static(id="desenho")       # a estrutura naquele instante
+                yield Static(id="desenho")       # a memória naquele instante
         yield Static(id="status")
         yield Footer()
 
@@ -117,7 +118,7 @@ class VisualizadorApp(App):
         self.pausar()
         self.redesenhar()
 
-    def action_estrutura(self, delta):
+    def action_aba(self, delta):
         proximo = (self.atual + delta) % len(self.cenarios)
         self.query_one(Tabs).active = f"c{proximo}"   # dispara on_tabs_tab_activated
 
@@ -165,18 +166,11 @@ class VisualizadorApp(App):
         topo = passo.topo
         no_modulo = topo.funcao == "<module>"   # executando no nível do arquivo
 
-        # 1) código com a linha atual destacada
+        # 1) código: o arquivo inteiro, com a linha atual destacada
         codigo = self.query_one("#codigo", Static)
-        if cenario.arquivo:
-            codigo.update(self.janela_do_arquivo(cenario.arquivo, topo.linha, codigo))
-            codigo.border_title = (os.path.basename(cenario.arquivo) if no_modulo
-                                   else f"{os.path.basename(cenario.arquivo)} · {topo.funcao}()")
-        else:                                    # cenários: só a função do topo da pilha
-            linhas, primeira = fonte(topo)
-            codigo.update(Syntax("".join(linhas), "python", theme="monokai",
-                                 line_numbers=True, start_line=primeira,
-                                 highlight_lines={topo.linha}, background_color="default"))
-            codigo.border_title = f"{topo.funcao}()"
+        codigo.update(self.janela_do_arquivo(cenario.arquivo, topo.linha, codigo))
+        codigo.border_title = (os.path.basename(cenario.arquivo) if no_modulo
+                               else f"{os.path.basename(cenario.arquivo)} · {topo.funcao}()")
         if passo.evento == "return" and no_modulo:
             # o módulo também "retorna" quando uma exceção escapa dele
             codigo.border_subtitle = (f"parou com erro na linha {topo.linha}"
@@ -216,7 +210,7 @@ class VisualizadorApp(App):
                          else Text("(nada ainda)", style="bright_black"))
             saida.border_title = "saída"
 
-        # 4) estrutura, desenhada a partir da cópia daquele instante
+        # 4) memória desenhada, a partir do heap daquele passo
         self.query_one("#desenho", Static).update(para_text(cenario.desenhar(passo)))
         self.query_one("#palco").border_title = cenario.operacao
 
