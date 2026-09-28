@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vized"
+version = "0.1.0"
+description = "Visualizador de estruturas de dados no terminal: código e memória, passo a passo"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Maria Luiza Uchoa" }]
+dependencies = ["textual>=0.50", "rich>=13"]
+
+[project.optional-dependencies]
+web = ["pyte>=0.8"]          # só para gerar a página web
+dev = ["pytest>=8"]
+
+[project.scripts]
+vized = "vized.__main__:main"    # depois de instalar, basta digitar: vized
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]         # permite rodar os testes sem instalar
+testpaths = ["tests"]

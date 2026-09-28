@@ -1,0 +1,13 @@
+  matriz de adjacência      lista de adjacência
+
+      A  B  C  D  E  F      A → [B] [C]
+   A  ·  1  1  ·  ·  ·      B → [A] [D]
+   B  1  ·  ·  1  ·  ·      C → [A] [D] [E]
+   C  1  ·  ·  1  1  ·      D → [B] [C] [F]
+   D  ·  1  1  ·  ·  1      E → [C] [F]
+   E  ·  ·  1  ·  ·  1      F → [D] [E]
+   F  ·  ·  ·  1  1  ·
+
+  atual -   viz -   fila []   ordem -
+
+  ■ atual  ■ processado  ■ na fila  ■ não descoberto

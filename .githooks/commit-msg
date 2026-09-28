@@ -1,0 +1,7 @@
+#!/bin/sh
+# Remove linhas de atribuição de IA da mensagem de commit.
+# A autoria dos commits deste repositório é só da autora.
+# Ativação (uma vez por clone):  git config core.hooksPath .githooks
+arquivo="$1"
+grep -v -i -E '^(co-authored-by: claude|.*generated with \[?claude code|claude-session:)' "$arquivo" > "$arquivo.tmp"
+mv "$arquivo.tmp" "$arquivo"
