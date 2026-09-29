@@ -1,4 +1,4 @@
-"""Árvores binárias: layout por percurso em ordem, e a árvore em pedaços.
+"""Árvores binárias: nós em caixas (ou compactos), e a árvore em pedaços.
 
 Os campos de ligação são parâmetros; eles vêm da detecção
 (deteccao/formas.py), não do nome dos campos.
@@ -7,8 +7,12 @@ from vized.nucleo.canvas import Canvas, lado_a_lado
 from vized.renderizadores.comum import nomes_por_endereco, titulo
 
 
+MAX_NIVEIS_CAIXAS = 6    # mais fundo que isso, volta ao desenho compacto (2 linhas por nível)
+DESVIO = 3               # pai de filho único: colunas entre o pai e o filho
+
+
 def desenhar_arvore(raiz, rotulo, tag_aresta, esq, dir):
-    """Layout por percurso em ordem: a ordem in-order vira a COLUNA do nó.
+    """Cada nó numa caixa; árvore funda demais sai no desenho compacto.
 
     rotulo(n)          → lista de (texto, tag) para escrever o nó
     tag_aresta(pai, f) → tag da linha que liga pai ao filho f
@@ -19,41 +23,130 @@ def desenhar_arvore(raiz, rotulo, tag_aresta, esq, dir):
     def f_dir(n):
         return getattr(n, dir, None)
 
-    posicao = {}                          # nó → (profundidade, ordem in-order)
-    contador = [0]
+    ordem, prof = [], {}                  # nós em ordem in-order; nó → profundidade
+    descobertos = {}                      # nó → (esq, dir) que foram visitados a partir dele
 
-    def visitar(n, prof):
-        if n is None or n in posicao:     # "in posicao": não entra em ciclo
-            return
-        visitar(f_esq(n), prof + 1)       # esquerda primeiro...
-        posicao[n] = (prof, contador[0])  # ...depois o nó ganha a próxima coluna
-        contador[0] += 1
-        visitar(f_dir(n), prof + 1)
+    def visitar(n, p):
+        if n is None or n in prof:        # "in prof": não entra em ciclo
+            return None
+        prof[n] = p
+        e = visitar(f_esq(n), p + 1)      # esquerda primeiro...
+        ordem.append(n)                   # ...depois o nó entra na sequência
+        descobertos[n] = (e, visitar(f_dir(n), p + 1))
+        return n
 
     visitar(raiz, 0)
-    slot = max(sum(len(t) for t, _ in rotulo(n)) for n in posicao) + 1
-    centro = {n: o * slot + slot // 2 for n, (_, o) in posicao.items()}
+    niveis = 1 + max(prof.values(), default=0)
+    if niveis > MAX_NIVEIS_CAIXAS:
+        return _compacta(ordem, prof, rotulo, tag_aresta, f_esq, f_dir)
+    return _em_caixas(raiz, descobertos, prof, rotulo, tag_aresta, f_esq, f_dir)
+
+
+def _filhos(n, prof, f_esq, f_dir):
+    """Filhos desenhados no nível de baixo; ligação de volta (ciclo) fica sem linha."""
+    return tuple(f if f in prof and prof[f] == prof[n] + 1 else None
+                 for f in (f_esq(n), f_dir(n)))
+
+
+def _ligacoes(cv, lin, x, n, e, d, centro, tag_aresta):
+    """Linha de conexão com os filhos: ┌───┴───┐, com a junção na coluna x."""
+    if e:
+        cv.escrever(lin, centro[e] + 1, "─" * (x - centro[e] - 1), tag_aresta(n, e))
+        _ponta(cv, lin, centro[e], "┌", tag_aresta(n, e))
+    if d:
+        cv.escrever(lin, x + 1, "─" * (centro[d] - x - 1), tag_aresta(n, d))
+        _ponta(cv, lin, centro[d], "┐", tag_aresta(n, d))
+    cv.escrever(lin, x, "┴" if e and d else "┘" if e else "└", "fraco")
+
+
+def _ponta(cv, lin, col, canto, tag):
+    """Canto sobre o canto oposto (nó com dois pais) vira ┬."""
+    atual = cv.celulas.get((lin, col), (" ",))[0]
+    cv.escrever(lin, col, "┬" if atual in "┌┐" and atual != canto else canto, tag)
+
+
+def _em_caixas(raiz, descobertos, prof, rotulo, tag_aresta, f_esq, f_dir):
+    """Nó = caixa com o valor dentro; 4 linhas por nível (3 da caixa + ligação).
+
+    Os filhos são posicionados primeiro e o pai fica no meio deles. Caixas
+    do mesmo nível precisam de um espaço entre si; se o pai não cabe, a
+    subárvore inteira anda para a direita. Níveis diferentes nunca se cruzam.
+    """
+    largura = {n: sum(len(t) for t, _ in rotulo(n)) + 4 for n in descobertos}   # "│ " + texto + " │"
+    centro, fim_do_nivel = {}, {}         # fim_do_nivel: última coluna ocupada no nível
+
+    def meio(n):                          # da borda esquerda até a junção ┴/┬
+        return (largura[n] - 1) // 2
+
+    def ocupar(n):
+        fim_do_nivel[prof[n]] = max(fim_do_nivel.get(prof[n], -2),
+                                    centro[n] - meio(n) + largura[n] - 1)
+
+    def mover(n, delta):                  # a subárvore é a última de cada nível: não colide
+        centro[n] += delta
+        ocupar(n)
+        for f in descobertos[n]:
+            if f is not None:
+                mover(f, delta)
+
+    def posicionar(n):
+        e, d = descobertos[n]
+        for f in (e, d):
+            if f is not None:
+                posicionar(f)
+        if e and d:
+            x = (centro[e] + centro[d]) // 2
+        elif e or d:                      # filho único: um pouco para o lado dele
+            x = centro[e] + DESVIO if e else centro[d] - DESVIO
+        else:
+            x = 0
+        minimo = fim_do_nivel.get(prof[n], -2) + 2 + meio(n)
+        if x < minimo:
+            for f in (e, d):
+                if f is not None:
+                    mover(f, minimo - x)
+            x = minimo
+        centro[n] = x
+        ocupar(n)
+
+    posicionar(raiz)
+
+    pais = {f: n for n in descobertos                # para o ┴ no topo da caixa
+            for f in _filhos(n, prof, f_esq, f_dir) if f is not None}
+
     cv = Canvas()
-    for n, (prof, _) in posicao.items():
-        y, x = prof * 2, centro[n]        # nós nas linhas pares
+    for n in descobertos:
+        y, x, w = prof[n] * 4, centro[n], largura[n]
+        col = x - (w - 1) // 2
+        pedacos = rotulo(n)
+        borda = "novo" if pedacos[0][1] == "novo" else "fraco"   # como na lista encadeada
+        cv.escrever(y, col, "┌" + "─" * (w - 2) + "┐", borda)
+        if n in pais:
+            cv.escrever(y, x, "┴", tag_aresta(pais[n], n))
+        cv.escrever(y + 1, col, "│ ", borda)
+        fim = cv.trechos(y + 1, col + 2, pedacos)
+        cv.escrever(y + 1, fim, " │", borda)
+        cv.escrever(y + 2, col, "└" + "─" * (w - 2) + "┘", borda)
+        e, d = _filhos(n, prof, f_esq, f_dir)
+        if e or d:
+            cv.escrever(y + 2, x, "┬", borda)
+            _ligacoes(cv, y + 3, x, n, e, d, centro, tag_aresta)
+    return cv
+
+
+def _compacta(ordem, prof, rotulo, tag_aresta, f_esq, f_dir):
+    """Layout por percurso em ordem: a ordem in-order vira a COLUNA do nó."""
+    slot = max(sum(len(t) for t, _ in rotulo(n)) for n in ordem) + 1
+    centro = {n: o * slot + slot // 2 for o, n in enumerate(ordem)}
+    cv = Canvas()
+    for n in ordem:
+        y, x = prof[n] * 2, centro[n]     # nós nas linhas pares
         pedacos = rotulo(n)
         largura = sum(len(t) for t, _ in pedacos)
         cv.trechos(y, x - largura // 2, pedacos)
-        e, d = f_esq(n), f_dir(n)
-        if e not in centro:               # filho fora do desenho (ciclo): sem linha
-            e = None
-        if d not in centro:
-            d = None
-        if not (e or d):
-            continue
-        if e:                             # linha de conexão abaixo: ┌───┴───┐
-            cv.escrever(y + 1, centro[e], "┌" + "─" * (x - centro[e] - 1),
-                        tag_aresta(n, e))
-        if d:
-            cv.escrever(y + 1, x + 1, "─" * (centro[d] - x - 1) + "┐",
-                        tag_aresta(n, d))
-        juncao = "┴" if e and d else "┘" if e else "└"
-        cv.escrever(y + 1, x, juncao, "fraco")
+        e, d = _filhos(n, prof, f_esq, f_dir)
+        if e or d:
+            _ligacoes(cv, y + 1, x, n, e, d, centro, tag_aresta)
     return cv
 
 

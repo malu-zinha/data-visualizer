@@ -9,6 +9,7 @@ import pytest
 
 from vized.cli import cenario_do_arquivo
 from vized.deteccao.formas import detectar
+from vized.renderizadores.arvore import desenhar_arvore
 
 RAIZ = Path(__file__).parent.parent
 
@@ -88,6 +89,30 @@ def test_gabarito_avl_mostra_a_rotacao():
     assert any("árvore em 2 pedaços" in t for t in textos)
     final = c.desenhar(c.passos[-1]).texto_puro()
     assert "pedaços" not in final and "30(3)" in final    # rebalanceada, 30 no meio
+
+
+def test_arvore_rasa_em_caixas_funda_compacta(tmp_path):
+    rasa = programa(tmp_path, NO + "        s.e = None\n        s.d = None\n"
+                            "r = No(2)\nr.e = No(1)\nr.d = No(3)\nfim = 1\n")
+    texto = rasa.desenhar(rasa.passos[-1]).texto_puro()
+    assert "│ 1 │" in texto and "┌─┴─┐" in texto   # cada nó numa caixa, ligada ao pai
+    funda = programa(tmp_path, NO + "        s.e = None\n        s.d = None\n"
+                             "r = No(1)\nr.e = No(0)\nn = r\n"   # 7 níveis: escada à direita
+                             "for v in range(2, 8):\n"
+                             "    n.d = No(v)\n    n = n.d\nfim = 1\n")
+    texto = funda.desenhar(funda.passos[-1]).texto_puro()
+    assert "│ 7 │" not in texto and "└─┐" in texto  # sem caixas: não caberia na tela
+
+
+def test_arvore_com_ciclo_desenha_sem_linha_de_volta():
+    class No:
+        def __init__(s, v):
+            s.v, s.e, s.d = v, None, None
+    a, b = No(1), No(2)
+    a.e, b.e = b, a                              # b aponta de volta para a raiz
+    texto = desenhar_arvore(a, lambda n: [(str(n.v), "normal")],
+                            lambda p, f: "fraco", "e", "d").texto_puro()
+    assert "│ 2 │" in texto and texto.endswith("└───┘")   # 2 é folha no desenho
 
 
 def test_ciclo_na_lista_e_marcado(tmp_path):
