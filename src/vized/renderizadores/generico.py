@@ -13,7 +13,7 @@ desenho fique feio. O layout segue o Python Tutor:
 - coluna k: objetos a k referências de distância das variáveis
   (profundidade de uma busca em largura);
 - referência para a coluna seguinte vira seta; qualquer outra (ciclo,
-  auto-referência, alvo na mesma coluna) vira o endereço "@xxxx" escrito.
+  auto-referência, alvo na mesma coluna) vira o conteúdo escrito: [1, [...]].
 """
 from collections import deque
 from dataclasses import dataclass, field
@@ -21,10 +21,12 @@ from dataclasses import dataclass, field
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.diferenca import GLOBAIS, Destaques, conteudo
 from vized.nucleo.heap import endereco
+from vized.nucleo.memoria import resumo_do_heap
 
 MAX_OBJETOS = 60        # a partir daqui, objetos não são desenhados
 MAX_ITENS = 12          # itens por lista/dicionário/objeto
 MAX_TEXTO = 18          # largura máxima de um valor escrito
+MAX_RESUMO = 30         # largura máxima do conteúdo de um objeto escrito ([0, 1])
 MAX_DEITADA = 60        # largura máxima de uma lista desenhada na horizontal
 PONTO = "●"             # onde nasce uma seta
 
@@ -135,7 +137,7 @@ def _filhos_visiveis(e, ocultos):
     return [r[1] for _, r in itens if r[0] == "ref" and r[1] not in ocultos]
 
 
-def _linha(rotulo, r, prof_origem, prof, rotulos):
+def _linha(rotulo, r, prof_origem, prof, rotulos, heap):
     """Linha de caixa para uma referência vista a partir da coluna prof_origem."""
     if r[0] == "valor":
         return Linha(rotulo, _texto_primitivo(r[1]))
@@ -144,7 +146,8 @@ def _linha(rotulo, r, prof_origem, prof, rotulos):
         return Linha(rotulo, rotulos[ident], tag_valor="ponteiro")
     if prof.get(ident) == prof_origem + 1:                # alvo na coluna seguinte: seta
         return Linha(rotulo, PONTO, alvo=ident, tag_valor="ponteiro")
-    return Linha(rotulo, endereco(ident), tag_valor="ponteiro")   # o resto: endereço escrito
+    return Linha(rotulo, resumo_do_heap(r, heap, MAX_RESUMO),       # o resto: conteúdo escrito
+                 tag_valor="ponteiro")
 
 
 def _caixa_do_objeto(ident, heap, prof, rotulos):
@@ -178,8 +181,8 @@ def _montar_caixa(ident, heap, prof, rotulos):
     for rotulo, r in itens:
         if isinstance(rotulo, tuple):                     # chave de dicionário (é uma ref)
             rotulo = (_texto_primitivo(rotulo[1]) if rotulo[0] == "valor"
-                      else endereco(rotulo[1]))
-        linhas.append(_linha(rotulo, r, d, prof, rotulos))
+                      else resumo_do_heap(rotulo, heap, MAX_RESUMO))
+        linhas.append(_linha(rotulo, r, d, prof, rotulos, heap))
     if sobra > 0:
         linhas.append(Linha("…", f"+{sobra}", tag_rotulo="fraco", tag_valor="fraco"))
     if not linhas:
@@ -192,7 +195,8 @@ def _caixas_de_variaveis(passo, prof, rotulos):
     caixas = []
 
     def caixa(titulo, variaveis, tag_nome="normal", extra=(), dono=None):
-        linhas = [_linha(nome, r, 0, prof, rotulos) for nome, r in variaveis.items()]
+        linhas = [_linha(nome, r, 0, prof, rotulos, passo.heap)
+                  for nome, r in variaveis.items()]
         for l, nome in zip(linhas, variaveis):
             l.tag_rotulo = tag_nome
             l.chave = ("var", nome)
@@ -208,7 +212,7 @@ def _caixas_de_variaveis(passo, prof, rotulos):
         no_topo = k == len(passo.quadros) - 1
         extra = []
         if no_topo and passo.evento == "return":
-            ret = _linha("retorna", passo.retorno, 0, prof, rotulos)
+            ret = _linha("retorna", passo.retorno, 0, prof, rotulos, passo.heap)
             ret.tag_rotulo = "ok"
             extra.append(ret)
         caixa([(f"{q.funcao}()", "foco" if no_topo else "titulo")], q.locais,

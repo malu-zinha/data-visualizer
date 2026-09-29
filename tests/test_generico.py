@@ -55,20 +55,37 @@ def test_seta_de_variavel_para_lista(tmp_path):
     assert "│ 1 │ 2 │" in texto                      # lista de primitivos deitada
 
 
-def test_ciclo_e_auto_referencia_viram_endereco(tmp_path):
+def test_ciclo_e_auto_referencia_mostram_o_conteudo(tmp_path):
     c = programa(tmp_path, (
-        "class No:\n"
+        "class Anel:\n"
         "    def __init__(self):\n"
-        "        self.prox = self\n"            # aponta para si mesmo
-        "n = No()\n"
+        "        self.eu = self\n"             # aponta para si mesmo
+        "a = Anel()\n"
         "x = [1]\n"
         "x.append(x)\n"
         "fim = 1\n"))
-    p = c.passos[-1]
-    texto = desenhar(p).texto_puro()
-    endereco_n = p.endereco(p.globais["n"])
-    assert f"prox  {endereco_n}" in texto            # auto-referência escrita
-    assert f"1  {p.endereco(p.globais['x'])}" in texto
+    texto = desenhar(c.passos[-1]).texto_puro()
+    assert "eu  Anel(eu=Anel(…))" in texto           # auto-referência: o conteúdo, sem @
+    assert "1  [1, [...]]" in texto
+
+
+def test_variavel_mostra_o_array_e_nao_o_endereco(tmp_path):
+    c = programa(tmp_path, "nums = [2, 7, 11, 15]\nresposta = [0, 1]\nfim = 1\n")
+    texto = c.desenhar(c.passos[-1]).texto_puro()
+    assert re.search(r"resposta +\[0, 1\]", texto)
+    assert re.search(r"nums +\[2, 7, 11, 15\]", texto)
+
+
+def test_variavel_mostra_o_no_sem_endereco(tmp_path):
+    c = programa(tmp_path, (
+        "class No:\n"
+        "    def __init__(self, valor, prox=None):\n"
+        "        self.valor = valor\n"
+        "        self.prox = prox\n"
+        "lista = No(3, No(4))\n"
+        "fim = 1\n"))
+    texto = c.desenhar(c.passos[-1]).texto_puro()
+    assert re.search(r"lista +nó 3 +│", texto)
 
 
 def test_lista_longa_e_truncada(tmp_path):

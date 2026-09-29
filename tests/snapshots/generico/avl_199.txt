@@ -4,7 +4,7 @@ variáveis globais
 │ x     50 │       │     ┌───────────────┐
 └──────────┘       │     │ valor   20    │
                    │     │ esq     ●────────▶ NoAVL @····
-inserir_avl()      │     │ dir     @···· │    ┌──────────────┐
+inserir_avl()      │     │ dir     nó 30 │    ┌──────────────┐
 ┌───────────┐      │     │ altura  3     │    │ valor   10   │
 │ n      ●─────────┘     └───────────────┘    │ esq     None │
 │ valor  50 │                                 │ dir     None │
@@ -16,7 +16,7 @@ inserir_avl()
 │ valor  50 │            ┌───────────────┐
 └───────────┘            │ valor   30    │
                          │ esq     None  │
-inserir_avl()            │ dir     @···· │
+inserir_avl()            │ dir     nó 40 │
 ┌───────────┐            │ altura  2     │
 │ n      ●───────────┐   └───────────────┘
 │ valor  50 │        │

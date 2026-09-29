@@ -17,14 +17,14 @@ soltos (a cadeia acima não os alcança):
 
 variáveis globais
 ┌──────────┐
-│ lista  ●─────────────┬▶ ListaEncadeada @····
-│ x      7 │           │  ┌──────────────────┐
-└──────────┘           │  │ head  nó 3 @···· │
-                       │  └──────────────────┘
-inserir_fim()          │
-┌───────────────────┐  │
-│ self   ●─────────────┘
-│ valor  7          │
-│ novo   nó 7 @···· │
-│ atual  nó 3 @···· │
-└───────────────────┘
+│ lista  ●─────────┬▶ ListaEncadeada @····
+│ x      7 │       │  ┌────────────┐
+└──────────┘       │  │ head  nó 3 │
+                   │  └────────────┘
+inserir_fim()      │
+┌─────────────┐    │
+│ self   ●─────────┘
+│ valor  7    │
+│ novo   nó 7 │
+│ atual  nó 3 │
+└─────────────┘

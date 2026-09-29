@@ -4,14 +4,14 @@
                             → genérico com o resto            (embaixo)
 
 O que um renderizador especializado desenha some do genérico; nas caixas
-de variáveis, a referência vira um rótulo ("nó 30 @2c60", "array @1a2b")
-em vez de seta. Casos ambíguos simplesmente não são detectados e ficam
+de variáveis, a referência vira um rótulo ("nó 30", "[0, 1]") em vez
+de seta. Casos ambíguos simplesmente não são detectados e ficam
 no genérico.
 """
 from vized.deteccao.formas import detectar, tipos_de_no
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.diferenca import Destaques, destaques
-from vized.nucleo.heap import endereco
+from vized.nucleo.memoria import resumo_do_heap
 from vized.renderizadores import arvore, array, buckets, generico, grafo, lista, sequencia
 
 RENDERIZADORES = {
@@ -26,11 +26,6 @@ RENDERIZADORES = {
     "buckets": buckets.desenhar_estrutura,
 }
 
-# como um container aparece numa caixa de variável do genérico
-CURTOS = {"array": "array", "fila": "fila", "matriz": "matriz", "matriz_adjacencia": "matriz",
-          "lista_adjacencia": "adjacência", "buckets": "buckets"}
-
-
 def _rotulos(passo, est):
     """Endereço → texto curto, para quem aponta para dentro da estrutura."""
     heap, rotulos = passo.heap, {}
@@ -39,11 +34,9 @@ def _rotulos(passo, est):
         if est.no is not None:                          # nó: mostra o valor
             r = e["campos"].get(est.no.valor) if est.no.valor else None
             valor = r[1] if r and r[0] == "valor" else "?"
-            rotulos[ident] = f"nó {valor} {endereco(ident)}"
-        elif ident == est.raiz:
-            rotulos[ident] = f"{CURTOS[est.forma]} {endereco(ident)}"
-        else:                                           # linha de matriz, bucket...
-            rotulos[ident] = f"{e['tipo']} {endereco(ident)}"
+            rotulos[ident] = f"nó {valor}"
+        else:                                           # array, fila, linha de matriz...
+            rotulos[ident] = resumo_do_heap(("ref", ident), heap, generico.MAX_RESUMO)
     return rotulos
 
 

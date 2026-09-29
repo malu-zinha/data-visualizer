@@ -4,7 +4,7 @@ variáveis globais
 │ x     14 │       │   ┌──────────────┐
 └──────────┘       │   │ valor  8     │
                    │   │ esq    ●────────▶ NoArvore @····
-inserir_bst()      │   │ dir    @···· │    ┌──────────┐
+inserir_bst()      │   │ dir    nó 10 │    ┌──────────┐
 ┌───────────┐      │   └──────────────┘    │ valor  3 │
 │ raiz   ●─────────┘                       │ esq    ●───────▶ NoArvore @····
 │ valor  14 │                              │ dir    ●──────┐  ┌─────────────┐
