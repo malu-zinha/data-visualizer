@@ -207,16 +207,16 @@ executar é `novo.prox = cabeca`:
 │ ▶   inserir_no_inicio()  linha 9                                 ││   prox=None                                                  │
 │                                                                  ││   ▲ novo                                                     │
 │ variáveis globais                                                ││                                                              │
-│   lista = nó 3 @ee70                                             ││  variáveis globais                                           │
-│   x = 2                                                          ││  ┌───────────────────┐                                       │
-│                                                                  ││  │ lista  nó 3 @ee70 │                                       │
-│ variáveis locais                                                 ││  │ x      2          │                                       │
-│   cabeca = nó 3 @ee70                                            ││  └───────────────────┘                                       │
+│   lista = nó 3                                                   ││  variáveis globais                                           │
+│   x = 2                                                          ││  ┌─────────────┐                                             │
+│                                                                  ││  │ lista  nó 3 │                                             │
+│ variáveis locais                                                 ││  │ x      2    │                                             │
+│   cabeca = nó 3                                                  ││  └─────────────┘                                             │
 │   valor = 2                                                      ││                                                              │
-│   novo = nó 2 @f4a0                                              ││  inserir_no_inicio()                                         │
-│                                                                  ││  ┌────────────────────┐                                      │
-╰──────────────────────────────────────────────────────────────────╯│  │ cabeca  nó 3 @ee70 │                                      │
-╭─ saída ──────────────────────────────────────────────────────────╮│  │ valor   2          │                                      │
+│   novo = nó 2                                                    ││  inserir_no_inicio()                                         │
+│                                                                  ││  ┌──────────────┐                                            │
+╰──────────────────────────────────────────────────────────────────╯│  │ cabeca  nó 3 │                                            │
+╭─ saída ──────────────────────────────────────────────────────────╮│  │ valor   2    │                                            │
 │ (nada ainda)                                                     ││                                                              │
 ╰──────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────╯
  passo 22/36     ❚❚ pausado
@@ -231,8 +231,10 @@ executar é `novo.prox = cabeca`:
 | Desenho (direita) | A memória. Aqui, a lista com o nó 3 e o nó 2 recém-criado, ainda solto (nenhum nó aponta para ele). `▲` indica as variáveis que apontam para cada nó. Mais abaixo, as variáveis de cada função em aberto. |
 | Barra de baixo | Número do passo e avisos (erro no programa, limite de passos). |
 
-`@ee70` é o endereço do objeto na memória. O mesmo endereço em dois
-lugares significa o mesmo objeto. Os endereços mudam a cada execução.
+Nas variáveis aparece o conteúdo (`nó 3`, `[0, 1]`), não o endereço.
+O endereço só aparece embaixo de cada nó de lista encadeada (`@ee70`),
+para ligar o `prox=@ee70` de um nó ao nó para onde ele aponta. Os
+endereços mudam a cada execução.
 
 Um passo depois (passo 23), `novo.prox = cabeca` foi executada e o nó 2
 passou a apontar para o nó 3. A seta nova aparece em verde:
@@ -268,8 +270,8 @@ lista encadeada · No
 | verde | criado ou alterado neste passo (objeto novo, valor alterado, seta religada) |
 | amarelo | objeto usado por uma chamada de função ainda em aberto (por exemplo, o caminho de uma recursão); em arrays, a posição indicada por uma variável inteira (`▲ j`) |
 | fundo amarelo | objeto apontado por uma variável da função atual; nome da função atual |
-| ciano | referências (setas, `nó 3 @ee70`) |
-| cinza | endereços, índices e bordas |
+| ciano | referências (setas, `nó 3`) |
+| cinza | endereços dos nós, índices e bordas |
 | vermelho | alerta (por exemplo, um nó de árvore com dois pais durante uma rotação) |
 
 ## Estruturas reconhecidas
