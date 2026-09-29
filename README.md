@@ -283,7 +283,7 @@ campos não importa (`prox`, `next`, `esq`, `left`...).
 |---|---|---|
 | lista encadeada | objeto com um campo que aponta para outro objeto da mesma classe | caixas `[valor│●]` ligadas por setas |
 | lista duplamente encadeada | dois campos assim, com ida e volta (`a.x.y is a`) | caixas com setas `◀───▶` |
-| árvore binária | dois campos assim, sem volta | árvore; outros campos do nó entre parênteses (ex.: altura) |
+| árvore binária | dois campos assim, sem volta | cada nó numa caixa, ligada ao pai; outros campos do nó entre parênteses (ex.: altura); com mais de 6 níveis, volta ao desenho compacto, sem caixas |
 | matriz | lista de listas, todas do mesmo tamanho | grade com índices |
 | matriz de adjacência | matriz quadrada só com 0 e 1 | grade com o nome dos vértices, se houver uma lista deles no mesmo objeto |
 | lista de adjacência | dicionário `vértice → lista de vértices` | `A → [B] [C]` |
