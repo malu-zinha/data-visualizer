@@ -1,9 +1,9 @@
 variáveis globais
 ┌──────────┐
-│ raiz  ●──────────┬──▶ NoAVL @····
+│ raiz  ●──────────┬──▶ NoAVL
 │ x     50 │       │    ┌───────────────┐
 └──────────┘       │    │ valor   20    │
-                   │    │ esq     ●──────────▶ NoAVL @····
+                   │    │ esq     ●──────────▶ NoAVL
 inserir_avl()      │    │ dir     nó 40 │      ┌──────────────┐
 ┌───────────┐      │    │ altura  3     │      │ valor   10   │
 │ n      ●─────────┘    └───────────────┘      │ esq     None │
@@ -12,19 +12,19 @@ inserir_avl()      │    │ dir     nó 40 │      ┌───────�
                                                └──────────────┘
 inserir_avl()
 ┌───────────┐
-│ n      ●────────────▶ NoAVL @····
+│ n      ●────────────▶ NoAVL
 │ valor  25 │           ┌───────────────┐
 └───────────┘           │ valor   40    │
                         │ esq     nó 30 │
-inserir_avl()           │ dir     ●──────────▶ NoAVL @····
+inserir_avl()           │ dir     ●──────────▶ NoAVL
 ┌───────────┐           │ altura  2     │      ┌──────────────┐
 │ n      ●───────────┐  └───────────────┘      │ valor   50   │
 │ valor  25 │        │                         │ esq     None │
-└───────────┘        └▶ NoAVL @····            │ dir     None │
+└───────────┘        └▶ NoAVL                  │ dir     None │
                         ┌──────────────┐       │ altura  1    │
                         │ valor   30   │       └──────────────┘
                         │ esq     ●─────────┐
-                        │ dir     None │    └▶ NoAVL @····
+                        │ dir     None │    └▶ NoAVL
                         │ altura  1    │       ┌──────────────┐
                         └──────────────┘       │ valor   25   │
                                                │ esq     None │

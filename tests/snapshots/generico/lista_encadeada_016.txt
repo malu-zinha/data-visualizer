@@ -1,6 +1,6 @@
 variáveis globais
 ┌──────────┐
-│ lista  ●─────────┬─▶ ListaEncadeada @····
+│ lista  ●─────────┬─▶ ListaEncadeada
 │ x      3 │       │   ┌────────────┐
 └──────────┘       │   │ head  None │
                    │   └────────────┘
@@ -12,7 +12,7 @@ inserir_fim()      │
 
 __init__()
 ┌──────────┐
-│ self   ●───────────▶ No @····
+│ self   ●───────────▶ No
 │ valor  3 │           ┌─────────┐
 └──────────┘           │ (vazio) │
                        └─────────┘

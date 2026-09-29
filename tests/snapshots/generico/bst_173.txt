@@ -1,39 +1,39 @@
 variáveis globais
 ┌─────────┐
-│ raiz  ●──────────▶ NoArvore @····
+│ raiz  ●──────────▶ NoArvore
 │ x     7 │          ┌──────────┐
 └─────────┘          │ valor  8 │
-                     │ esq    ●───────▶ NoArvore @····
-                     │ dir    ●──────┐  ┌──────────┐
-                     └──────────┘    │  │ valor  3 │
-                                     │  │ esq    ●─────────▶ NoArvore @····
-                                     │  │ dir    ●───────┐   ┌─────────────┐
-                                     │  └──────────┘     │   │ valor  1    │
-                                     │                   │   │ esq    None │
-                                     └▶ NoArvore @····   │   │ dir    None │
-                                        ┌─────────────┐  │   └─────────────┘
-                                        │ valor  10   │  │
-                                        │ esq    None │  └─▶ NoArvore @····
-                                        │ dir    ●────────┐  ┌──────────┐
-                                        └─────────────┘   │  │ valor  6 │
-                                                          │  │ esq    ●─────────▶ NoArvore @····
-                                                          │  │ dir    ●───────┐   ┌─────────────┐
-                                                          │  └──────────┘     │   │ valor  4    │
-                                                          │                   │   │ esq    None │
-                                                          └▶ NoArvore @····   │   │ dir    None │
-                                                             ┌─────────────┐  │   └─────────────┘
-                                                             │ valor  14   │  │
-                                                             │ esq    ●───────┼┐
-                                                             │ dir    None │  └┼▶ NoArvore @····
-                                                             └─────────────┘   │  ┌─────────────┐
-                                                                               │  │ valor  7    │
-                                                                               │  │ esq    None │
-                                                                               │  │ dir    None │
-                                                                               │  └─────────────┘
-                                                                               │
-                                                                               └▶ NoArvore @····
-                                                                                  ┌─────────────┐
-                                                                                  │ valor  13   │
-                                                                                  │ esq    None │
-                                                                                  │ dir    None │
-                                                                                  └─────────────┘
+                     │ esq    ●─────▶ NoArvore
+                     │ dir    ●────┐  ┌──────────┐
+                     └──────────┘  │  │ valor  3 │
+                                   │  │ esq    ●─────────▶ NoArvore
+                                   │  │ dir    ●───────┐   ┌─────────────┐
+                                   │  └──────────┘     │   │ valor  1    │
+                                   │                   │   │ esq    None │
+                                   └▶ NoArvore         │   │ dir    None │
+                                      ┌─────────────┐  │   └─────────────┘
+                                      │ valor  10   │  │
+                                      │ esq    None │  └─▶ NoArvore
+                                      │ dir    ●────────┐  ┌──────────┐
+                                      └─────────────┘   │  │ valor  6 │
+                                                        │  │ esq    ●─────────▶ NoArvore
+                                                        │  │ dir    ●───────┐   ┌─────────────┐
+                                                        │  └──────────┘     │   │ valor  4    │
+                                                        │                   │   │ esq    None │
+                                                        └▶ NoArvore         │   │ dir    None │
+                                                           ┌─────────────┐  │   └─────────────┘
+                                                           │ valor  14   │  │
+                                                           │ esq    ●───────┼┐
+                                                           │ dir    None │  └┼▶ NoArvore
+                                                           └─────────────┘   │  ┌─────────────┐
+                                                                             │  │ valor  7    │
+                                                                             │  │ esq    None │
+                                                                             │  │ dir    None │
+                                                                             │  └─────────────┘
+                                                                             │
+                                                                             └▶ NoArvore
+                                                                                ┌─────────────┐
+                                                                                │ valor  13   │
+                                                                                │ esq    None │
+                                                                                │ dir    None │
+                                                                                └─────────────┘

@@ -3,7 +3,7 @@
 É a rede de segurança: funciona para qualquer programa, mesmo que o
 desenho fique feio. O layout segue o Python Tutor:
 
-    variáveis globais        list @1a2b
+    variáveis globais        list
     ┌──────────────┐         ┌───┬───┬───┐
     │ numeros  ●───┼────────▶│ 5 │ 2 │ 9 │
     │ fim      True│         └───┴───┴───┘
@@ -20,7 +20,6 @@ from dataclasses import dataclass, field
 
 from vized.nucleo.canvas import Canvas
 from vized.nucleo.diferenca import GLOBAIS, Destaques, conteudo
-from vized.nucleo.heap import endereco
 from vized.nucleo.memoria import resumo_do_heap
 
 MAX_OBJETOS = 60        # a partir daqui, objetos não são desenhados
@@ -165,7 +164,7 @@ def _caixa_do_objeto(ident, heap, prof, rotulos):
 
 def _montar_caixa(ident, heap, prof, rotulos):
     e, d = heap[ident], prof[ident]
-    titulo = [(e["tipo"], "titulo"), (" " + endereco(ident), "fraco")]
+    titulo = [(e["tipo"], "titulo")]
     if e["forma"] == "opaco":
         return Caixa(titulo, [Linha("", e["texto"][:MAX_TEXTO * 2], tag_valor="fraco")])
     itens, sobra = _refs_do_objeto(e)

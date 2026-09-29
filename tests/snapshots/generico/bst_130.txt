@@ -1,31 +1,31 @@
 variáveis globais
 ┌─────────┐
-│ raiz  ●──────────┬─▶ NoArvore @····
+│ raiz  ●──────────┬─▶ NoArvore
 │ x     7 │        │   ┌─────────────┐
 └─────────┘        │   │ valor  8    │
                    │   │ esq    nó 3 │
-inserir_bst()      │   │ dir    ●─────────▶ NoArvore @····
+inserir_bst()      │   │ dir    ●─────────▶ NoArvore
 ┌──────────┐       │   └─────────────┘      ┌─────────────┐
 │ raiz   ●─────────┘                        │ valor  10   │
 │ valor  7 │                                │ esq    None │
-└──────────┘                                │ dir    ●────────▶ NoArvore @····
+└──────────┘                                │ dir    ●────────▶ NoArvore
                                             └─────────────┘     ┌─────────────┐
 inserir_bst()                                                   │ valor  14   │
 ┌──────────┐                                                    │ esq    None │
-│ raiz   ●───────────▶ NoArvore @····                           │ dir    None │
+│ raiz   ●───────────▶ NoArvore                                 │ dir    None │
 │ valor  7 │           ┌──────────┐                             └─────────────┘
 └──────────┘           │ valor  3 │
-                       │ esq    ●─────────▶ NoArvore @····
+                       │ esq    ●─────────▶ NoArvore
                        │ dir    ●────────┐  ┌─────────────┐
                        └──────────┘      │  │ valor  1    │
                                          │  │ esq    None │
                                          │  │ dir    None │
                                          │  └─────────────┘
                                          │
-                                         └▶ NoArvore @····
+                                         └▶ NoArvore
                                             ┌─────────────┐
                                             │ valor  6    │
-                                            │ esq    ●────────▶ NoArvore @····
+                                            │ esq    ●────────▶ NoArvore
                                             │ dir    None │     ┌─────────────┐
                                             └─────────────┘     │ valor  4    │
                                                                 │ esq    None │

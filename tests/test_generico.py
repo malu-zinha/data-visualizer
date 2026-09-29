@@ -51,7 +51,7 @@ def test_setas_nao_se_confundem():
 
 def test_seta_de_variavel_para_lista(tmp_path):
     texto = desenhar(programa(tmp_path, "a = [1, 2]\nfim = 1\n").passos[-1]).texto_puro()
-    assert re.search(r"│ a +●─+▶ list @", texto)      # seta reta até a lista
+    assert re.search(r"│ a +●─+▶ list$", texto, re.M)   # seta reta até a lista (sem @)
     assert "│ 1 │ 2 │" in texto                      # lista de primitivos deitada
 
 
@@ -74,6 +74,8 @@ def test_variavel_mostra_o_array_e_nao_o_endereco(tmp_path):
     texto = c.desenhar(c.passos[-1]).texto_puro()
     assert re.search(r"resposta +\[0, 1\]", texto)
     assert re.search(r"nums +\[2, 7, 11, 15\]", texto)
+    assert "array  ← resposta" in texto              # título sem endereço
+    assert "@" not in texto
 
 
 def test_variavel_mostra_o_no_sem_endereco(tmp_path):

@@ -1,20 +1,20 @@
 variáveis globais
 ┌──────────┐
-│ raiz  ●──────────▶ NoAVL @····
+│ raiz  ●──────────▶ NoAVL
 │ x     50 │         ┌────────────┐
 └──────────┘         │ valor   30 │
-                     │ esq     ●──────▶ NoAVL @····
+                     │ esq     ●──────▶ NoAVL
                      │ dir     ●─────┐  ┌────────────┐
                      │ altura  3  │  │  │ valor   20 │
-                     └────────────┘  │  │ esq     ●─────────▶ NoAVL @····
+                     └────────────┘  │  │ esq     ●─────────▶ NoAVL
                                      │  │ dir     ●───────┐   ┌──────────────┐
                                      │  │ altura  2  │    │   │ valor   10   │
                                      │  └────────────┘    │   │ esq     None │
                                      │                    │   │ dir     None │
-                                     └▶ NoAVL @····       │   │ altura  1    │
+                                     └▶ NoAVL             │   │ altura  1    │
                                         ┌──────────────┐  │   └──────────────┘
                                         │ valor   40   │  │
-                                        │ esq     None │  └─▶ NoAVL @····
+                                        │ esq     None │  └─▶ NoAVL
                                         │ dir     ●────────┐  ┌──────────────┐
                                         │ altura  2    │   │  │ valor   25   │
                                         └──────────────┘   │  │ esq     None │
@@ -22,7 +22,7 @@ variáveis globais
                                                            │  │ altura  1    │
                                                            │  └──────────────┘
                                                            │
-                                                           └▶ NoAVL @····
+                                                           └▶ NoAVL
                                                               ┌──────────────┐
                                                               │ valor   50   │
                                                               │ esq     None │

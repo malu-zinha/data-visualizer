@@ -73,7 +73,7 @@ def desenhar_matriz(passo, est, d):
     de_adjacencia = est.forma == "matriz_adjacencia"
     em_foco = valores_do_topo(passo)
     cv = Canvas()
-    titulo(cv, est.forma, est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    titulo(cv, est.forma, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
     if de_adjacencia:                               # vértices com nome, células 1/·
         rotulos = _rotulos_da_matriz(passo, est.raiz, len(linhas))
 
@@ -104,7 +104,7 @@ def desenhar_adjacencia(passo, est, d):
     novos = {(k[1], r[1]) for k, v in pares
              for pos, r in enumerate(heap[v[1]]["itens"]) if d.mudou(v[1], pos)}
     cv = Canvas()
-    titulo(cv, est.forma, est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    titulo(cv, est.forma, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
     adjacencia(cv, 2, 2, adj,
                lambda v: "foco" if v in em_foco else "normal",
                lambda v, u: ("novo" if (v, u) in novos else "foco" if u in em_foco

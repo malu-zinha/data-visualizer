@@ -9,7 +9,7 @@ lista encadeada · No
 
 variáveis globais
 ┌──────────┐
-│ lista  ●─────────┬▶ ListaEncadeada @····
+│ lista  ●─────────┬▶ ListaEncadeada
 │ x      3 │       │  ┌────────────┐
 └──────────┘       │  │ head  None │
                    │  └────────────┘

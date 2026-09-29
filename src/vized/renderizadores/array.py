@@ -43,7 +43,7 @@ def desenhar_estrutura(passo, est, d):
     largura = max(4, max(len(t) for t in textos) + 2)
     marcados = indices_do_topo(passo, len(textos))
     cv = Canvas()
-    titulo(cv, "array", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    titulo(cv, "array", nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
     tags = ["novo" if d.mudou(est.raiz, i) else "destaque" if i in marcados else "normal"
             for i in range(len(textos))]
     centros = celulas(cv, 2, 2, textos, tags, largura)

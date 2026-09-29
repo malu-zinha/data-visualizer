@@ -1,14 +1,14 @@
 variáveis globais
 ┌──────────┐
-│ raiz  ●──────────┬┬▶ NoAVL @····
+│ raiz  ●──────────┬┬▶ NoAVL
 │ x     30 │       ││  ┌──────────────┐
 └──────────┘       ││  │ valor   10   │
                    ││  │ esq     None │
-inserir_avl()      ││  │ dir     ●───────▶ NoAVL @····
+inserir_avl()      ││  │ dir     ●───────▶ NoAVL
 ┌───────────┐      ││  │ altura  3    │    ┌──────────────┐
 │ n      ●─────────┘│  └──────────────┘    │ valor   20   │
 │ valor  30 │       │                      │ esq     None │
-└───────────┘       │                      │ dir     ●───────▶ NoAVL @····
+└───────────┘       │                      │ dir     ●───────▶ NoAVL
                     │                      │ altura  2    │    ┌──────────────┐
 fator()             │                      └──────────────┘    │ valor   30   │
 ┌──────┐            │                                          │ esq     None │

@@ -1,21 +1,21 @@
 variáveis globais
 ┌──────────┐
-│ raiz  ●──────────┬─▶ NoArvore @····
+│ raiz  ●──────────┬─▶ NoArvore
 │ x     14 │       │   ┌──────────────┐
 └──────────┘       │   │ valor  8     │
-                   │   │ esq    ●────────▶ NoArvore @····
+                   │   │ esq    ●────────▶ NoArvore
 inserir_bst()      │   │ dir    nó 10 │    ┌──────────┐
 ┌───────────┐      │   └──────────────┘    │ valor  3 │
-│ raiz   ●─────────┘                       │ esq    ●───────▶ NoArvore @····
-│ valor  14 │                              │ dir    ●──────┐  ┌─────────────┐
-└───────────┘                              └──────────┘    │  │ valor  1    │
-                                                           │  │ esq    None │
-inserir_bst()                                              │  │ dir    None │
-┌───────────┐                                              │  └─────────────┘
-│ raiz   ●───────────▶ NoArvore @····                      │
-│ valor  14 │          ┌─────────────┐                     └▶ NoArvore @····
-└───────────┘          │ valor  10   │                        ┌─────────────┐
-                       │ esq    None │                        │ valor  6    │
-                       │ dir    None │                        │ esq    None │
-                       └─────────────┘                        │ dir    None │
-                                                              └─────────────┘
+│ raiz   ●─────────┘                       │ esq    ●─────▶ NoArvore
+│ valor  14 │                              │ dir    ●────┐  ┌─────────────┐
+└───────────┘                              └──────────┘  │  │ valor  1    │
+                                                         │  │ esq    None │
+inserir_bst()                                            │  │ dir    None │
+┌───────────┐                                            │  └─────────────┘
+│ raiz   ●───────────▶ NoArvore                          │
+│ valor  14 │          ┌─────────────┐                   └▶ NoArvore
+└───────────┘          │ valor  10   │                      ┌─────────────┐
+                       │ esq    None │                      │ valor  6    │
+                       │ dir    None │                      │ esq    None │
+                       └─────────────┘                      │ dir    None │
+                                                            └─────────────┘

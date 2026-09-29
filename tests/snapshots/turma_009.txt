@@ -1,6 +1,6 @@
 __init__()
 ┌────────────────┐
-│ self     ●────────▶ Aluna @····
+│ self     ●────────▶ Aluna
 │ nome     'Ana' │    ┌─────────────┐
 │ nota     9     │    │ nome  'Ana' │
 │ retorna  None  │    │ nota  9     │

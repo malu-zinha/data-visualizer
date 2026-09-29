@@ -17,7 +17,7 @@ soltos (a cadeia acima não os alcança):
 
 variáveis globais
 ┌──────────┐
-│ lista  ●─────────┬▶ ListaEncadeada @····
+│ lista  ●─────────┬▶ ListaEncadeada
 │ x      7 │       │  ┌────────────┐
 └──────────┘       │  │ head  nó 3 │
                    │  └────────────┘

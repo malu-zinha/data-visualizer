@@ -41,7 +41,7 @@ def desenhar_estrutura(passo, est, d):
     """
     itens = [texto(r[1]) for r in passo.heap[est.raiz]["itens"]]
     cv = Canvas()
-    titulo(cv, "fila", est.raiz, nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
+    titulo(cv, "fila", nomes_por_endereco(passo, so_topo=False).get(est.raiz, []))
     if not itens:
         cv.escrever(2, 2, "(vazia)", "fraco")
         return cv

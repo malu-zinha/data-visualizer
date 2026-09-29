@@ -1,6 +1,5 @@
 """Leituras do passo que vários renderizadores especializados usam."""
 from vized.deteccao.formas import NOMES
-from vized.nucleo.heap import endereco
 
 
 def texto(v):
@@ -51,13 +50,11 @@ def valores_do_topo(passo):
             if r[0] == "valor" and r[1] is not None and type(r[1]) is not bool}
 
 
-def titulo(cv, forma, ident=None, nomes=(), detalhe=""):
-    """Linha 0: 'array @1a2b  ← numeros, v'."""
+def titulo(cv, forma, nomes=(), detalhe=""):
+    """Linha 0: 'array  ← numeros, v'."""
     pedacos = [(NOMES[forma], "titulo")]
     if detalhe:
         pedacos.append((f" · {detalhe}", "fraco"))
-    if ident is not None:
-        pedacos.append((f" {endereco(ident)}", "fraco"))
     if nomes:
         pedacos.append(("  ← " + ", ".join(nomes), "foco"))
     cv.trechos(0, 0, pedacos)
