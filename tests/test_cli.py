@@ -28,6 +28,8 @@ def test_bubble_roda_do_comeco_ao_fim():
 def test_globais_sem_modulos_funcoes_classes_e_dunders(tmp_path):
     c = cenario_do_arquivo(programa(tmp_path, (
         "import math\n"
+        "from typing import List, Optional\n"   # anotações de tipo (código do LeetCode)
+        "Pares = List[int]\n"
         "class No:\n    pass\n"
         "def f():\n    return 1\n"
         "x = 10\n"

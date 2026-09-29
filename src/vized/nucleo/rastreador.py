@@ -83,15 +83,15 @@ class Rastreio:
 
 
 def global_visivel(nome, valor):
-    """As globais que interessam: sem __dunder__, módulos, funções e classes.
+    """As globais que interessam: sem __dunder__, módulos, funções, classes e tipos.
 
-    Módulos, funções e classes não são "dados" do programa, só poluiriam o
-    painel e o heap.
+    Módulos, funções, classes e anotações de tipo (List, Optional... do
+    typing) não são "dados" do programa, só poluiriam o painel e o heap.
     """
     if nome.startswith("__") and nome.endswith("__"):
         return False                            # __name__, __builtins__, __file__...
     return not (inspect.ismodule(valor) or inspect.isroutine(valor)
-                or inspect.isclass(valor))
+                or inspect.isclass(valor) or type(valor).__module__ == "typing")
 
 
 def rastrear(chamada, filtro, capturar=dict, pular=(), max_passos=None,
