@@ -1,6 +1,6 @@
 """Árvore binária de busca.
 
-Rode com:  vized exemplos/bst.py
+Rode com:  inspect exemplos/bst.py
 """
 
 

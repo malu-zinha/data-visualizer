@@ -5,7 +5,7 @@ detectar forma → desenhar) e cinco pontos da linha do tempo são comparados
 com tests/snapshots/<exemplo>_<passo>.txt.
 
 Para (re)gerar os arquivos esperados depois de uma mudança INTENCIONAL:
-    VIZED_ATUALIZAR=1 pytest tests/test_desenhos.py
+    INSPECT_ATUALIZAR=1 pytest tests/test_desenhos.py
 """
 import os
 import re
@@ -13,12 +13,12 @@ from pathlib import Path
 
 import pytest
 
-from vized.cli import cenario_do_arquivo
+from inspetor.cli import cenario_do_arquivo
 
 RAIZ = Path(__file__).parent.parent
 EXEMPLOS = sorted((RAIZ / "exemplos").glob("*.py"))
 PASTA = Path(__file__).parent / "snapshots"
-ATUALIZAR = os.environ.get("VIZED_ATUALIZAR") == "1"
+ATUALIZAR = os.environ.get("INSPECT_ATUALIZAR") == "1"
 
 
 def normalizar(texto):

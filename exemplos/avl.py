@@ -1,6 +1,6 @@
 """Árvore AVL: inserir 25 provoca uma rotação dupla.
 
-Rode com:  vized exemplos/avl.py
+Rode com:  inspect exemplos/avl.py
 """
 
 

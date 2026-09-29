@@ -8,11 +8,11 @@ de variáveis, a referência vira um rótulo ("nó 30", "[0, 1]") em vez
 de seta. Casos ambíguos simplesmente não são detectados e ficam
 no genérico.
 """
-from vized.deteccao.formas import detectar, tipos_de_no
-from vized.nucleo.canvas import Canvas
-from vized.nucleo.diferenca import Destaques, destaques
-from vized.nucleo.memoria import resumo_do_heap
-from vized.renderizadores import arvore, array, buckets, generico, grafo, lista, sequencia
+from inspetor.deteccao.formas import detectar, tipos_de_no
+from inspetor.nucleo.canvas import Canvas
+from inspetor.nucleo.diferenca import Destaques, destaques
+from inspetor.nucleo.memoria import resumo_do_heap
+from inspetor.renderizadores import arvore, array, buckets, generico, grafo, lista, sequencia
 
 RENDERIZADORES = {
     "arvore": arvore.desenhar_estrutura,

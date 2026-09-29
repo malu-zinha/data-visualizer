@@ -1,5 +1,5 @@
 """Leituras do passo que vários renderizadores especializados usam."""
-from vized.deteccao.formas import NOMES
+from inspetor.deteccao.formas import NOMES
 
 
 def texto(v):

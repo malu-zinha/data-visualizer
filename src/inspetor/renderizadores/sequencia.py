@@ -6,8 +6,8 @@
     └─────┴─────┴─────┘
        ▲ ini       ▲ fim
 """
-from vized.nucleo.canvas import Canvas
-from vized.renderizadores.comum import nomes_por_endereco, texto, titulo
+from inspetor.nucleo.canvas import Canvas
+from inspetor.renderizadores.comum import nomes_por_endereco, texto, titulo
 
 
 

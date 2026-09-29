@@ -1,6 +1,6 @@
 """Pilha sobre lista e fila circular sobre vetor.
 
-Rode com:  vized exemplos/pilha_fila.py
+Rode com:  inspect exemplos/pilha_fila.py
 """
 
 

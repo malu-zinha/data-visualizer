@@ -12,7 +12,7 @@ comparam por nome, nunca com isinstance da classe original.
 from collections import deque
 from dataclasses import dataclass
 
-from vized.nucleo.heap import endereco
+from inspetor.nucleo.heap import endereco
 
 
 class Objeto:

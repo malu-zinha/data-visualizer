@@ -5,8 +5,8 @@
       B  1  ·  ·             C → [A]
       C  1  ·  ·
 """
-from vized.nucleo.canvas import Canvas
-from vized.renderizadores.comum import (nomes_por_endereco, texto, titulo, valores_do_topo,
+from inspetor.nucleo.canvas import Canvas
+from inspetor.renderizadores.comum import (nomes_por_endereco, texto, titulo, valores_do_topo,
                                        variaveis_do_topo)
 
 

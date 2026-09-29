@@ -3,8 +3,8 @@
     [0] ─▶ [ana] ─▶ [leo]
     [1] ─▶ ∅
 """
-from vized.nucleo.canvas import Canvas
-from vized.renderizadores.comum import indices_do_topo, nomes_por_endereco, texto, titulo
+from inspetor.nucleo.canvas import Canvas
+from inspetor.renderizadores.comum import indices_do_topo, nomes_por_endereco, texto, titulo
 
 
 

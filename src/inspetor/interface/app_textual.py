@@ -1,8 +1,8 @@
 """Interface textual: código executando à esquerda, memória desenhada à direita.
 
 Uso:
-    python -m vized                      # os exemplos, uma aba cada
-    python -m vized programa.py          # qualquer arquivo (ver cli.py)
+    python -m inspetor                      # os exemplos, uma aba cada
+    python -m inspetor programa.py          # qualquer arquivo (ver cli.py)
 Teclas: ← → aba · n/p próximo/anterior · espaço play/pausa · r reinicia · q sai
 """
 import linecache
@@ -15,9 +15,9 @@ from textual.binding import Binding
 from textual.containers import Horizontal, ScrollableContainer, Vertical
 from textual.widgets import Footer, Header, Static, Tab, Tabs
 
-from vized.cli import cenarios_dos_exemplos
+from inspetor.cli import cenarios_dos_exemplos
 
-from vized.nucleo.memoria import resumo
+from inspetor.nucleo.memoria import resumo
 
 # Tags do desenho.py → estilos rich (inclui "foco": variável do frame atual)
 ESTILOS = {

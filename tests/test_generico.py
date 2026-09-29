@@ -1,7 +1,7 @@
 """Renderizador genérico (etapa 3 do ROADMAP): qualquer heap vira caixas e setas.
 
 Snapshots em tests/snapshots/generico/. Para regravar após mudança INTENCIONAL:
-    VIZED_ATUALIZAR=1 pytest tests/test_generico.py
+    INSPECT_ATUALIZAR=1 pytest tests/test_generico.py
 """
 import os
 import re
@@ -9,13 +9,13 @@ from pathlib import Path
 
 import pytest
 
-from vized.cli import cenario_do_arquivo
-from vized.renderizadores.generico import MAX_ITENS, MAX_OBJETOS, desenhar, montar
+from inspetor.cli import cenario_do_arquivo
+from inspetor.renderizadores.generico import MAX_ITENS, MAX_OBJETOS, desenhar, montar
 
 RAIZ = Path(__file__).parent.parent
 EXEMPLOS = sorted((RAIZ / "exemplos").glob("*.py"))
 PASTA = Path(__file__).parent / "snapshots" / "generico"
-ATUALIZAR = os.environ.get("VIZED_ATUALIZAR") == "1"
+ATUALIZAR = os.environ.get("INSPECT_ATUALIZAR") == "1"
 
 
 def todos_os_passos():

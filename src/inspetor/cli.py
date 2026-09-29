@@ -1,24 +1,24 @@
-"""Linha de comando: `vized programa.py` rastreia um arquivo; `vized` abre os exemplos.
+"""Linha de comando: `inspect programa.py` rastreia um arquivo; `inspect` abre os exemplos.
 
 Uso:
-    vized                               # os exemplos de exemplos/, uma aba cada
-    vized exemplos/bubble.py            # qualquer arquivo Python
-    vized avl                           # atalho para exemplos/avl.py
-    vized exemplos/bubble.py --max-passos 500
+    inspect                               # os exemplos de exemplos/, uma aba cada
+    inspect exemplos/bubble.py            # qualquer arquivo Python
+    inspect avl                           # atalho para exemplos/avl.py
+    inspect exemplos/bubble.py --max-passos 500
 """
 import argparse
 import os
 import runpy
 import sys
 
-from vized.nucleo.cenario import Cenario
-from vized.nucleo.rastreador import filtro_arquivos
-from vized.renderizadores.automatico import Desenhista
+from inspetor.nucleo.cenario import Cenario
+from inspetor.nucleo.rastreador import filtro_arquivos
+from inspetor.renderizadores.automatico import Desenhista
 
 MAX_PASSOS = 2000                  # laços longos: a linha do tempo para aqui
 
-# exemplos/ fica na raiz do repositório (src/vized/cli.py → ../../exemplos);
-# existe quando o vized foi instalado em modo editável (pip install -e .)
+# exemplos/ fica na raiz do repositório (src/inspetor/cli.py → ../../exemplos);
+# existe quando o pacote foi instalado em modo editável (pip install -e .)
 PASTA_EXEMPLOS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                               os.pardir, os.pardir, "exemplos")
 # ordem das abas: do mais simples ao mais elaborado; os demais vêm depois
@@ -79,7 +79,7 @@ def cenarios_dos_exemplos(max_passos=MAX_PASSOS):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="vized",
+        prog="inspect",
         description="Mostra no terminal, passo a passo, o código rodando e a memória.")
     parser.add_argument("arquivo", nargs="?",
                         help="programa Python a visualizar, ou o nome de um exemplo "
@@ -93,14 +93,14 @@ def main(argv=None):
         cenarios = cenarios_dos_exemplos(args.max_passos)
         if not cenarios:
             parser.error("pasta exemplos/ não encontrada (instale com pip install -e .) "
-                         "— ou passe um arquivo: vized programa.py")
+                         "— ou passe um arquivo: inspect programa.py")
     elif os.path.isfile(args.arquivo):
         cenarios = [cenario_do_arquivo(args.arquivo, args.max_passos)]
-    elif os.path.isfile(atalho):                   # `vized avl` → exemplos/avl.py
+    elif os.path.isfile(atalho):                   # `inspect avl` → exemplos/avl.py
         cenarios = [cenario_do_arquivo(atalho, args.max_passos)]
     else:
         parser.error(f"arquivo não encontrado: {args.arquivo}")
 
-    # importado aqui: `vized --help` responde sem carregar o textual
-    from vized.interface.app_textual import VisualizadorApp
+    # importado aqui: `inspect --help` responde sem carregar o textual
+    from inspetor.interface.app_textual import VisualizadorApp
     VisualizadorApp(cenarios).run()

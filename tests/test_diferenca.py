@@ -5,11 +5,11 @@ de cada trecho desenhado.
 """
 from pathlib import Path
 
-from vized.cli import cenario_do_arquivo
-from vized.nucleo.diferenca import GLOBAIS, destaques
-from vized.nucleo.heap import achatar, ref
-from vized.nucleo.rastreador import Passo, Quadro
-from vized.renderizadores import generico
+from inspetor.cli import cenario_do_arquivo
+from inspetor.nucleo.diferenca import GLOBAIS, destaques
+from inspetor.nucleo.heap import achatar, ref
+from inspetor.nucleo.rastreador import Passo, Quadro
+from inspetor.renderizadores import generico
 
 RAIZ = Path(__file__).parent.parent
 

@@ -12,8 +12,8 @@ import sys
 from dataclasses import dataclass, field
 from functools import cached_property
 
-from vized.nucleo.heap import achatar, endereco, ref
-from vized.nucleo.vista import reconstruir
+from inspetor.nucleo.heap import achatar, endereco, ref
+from inspetor.nucleo.vista import reconstruir
 
 def filtro_arquivos(*caminhos):
     """Filtro que aceita só os arquivos dados (ex.: o programa da usuária).
