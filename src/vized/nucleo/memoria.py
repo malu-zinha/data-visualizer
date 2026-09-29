@@ -1,10 +1,17 @@
-"""Texto curto para mostrar valores no painel de memória (lido do heap)."""
-from vized.nucleo.heap import endereco
+"""Texto curto para mostrar valores no painel de memória (lido do heap).
+
+Mostra o conteúdo, nunca o endereço: `[0, 1]`, `Pessoa(nome='Ana')`, `nó 3`.
+"""
 
 
 def resumo(r, passo, largura=34):
     """Referência → texto de no máximo `largura` caracteres."""
-    s = _texto(r, passo.heap, frozenset(), largura)
+    return resumo_do_heap(r, passo.heap, largura)
+
+
+def resumo_do_heap(r, heap, largura=34):
+    """O mesmo que `resumo`, para quem tem só o heap (e não o passo)."""
+    s = _texto(r, heap, frozenset(), largura)
     return s if len(s) <= largura else s[:largura - 1] + "…"
 
 
@@ -18,11 +25,13 @@ def _texto(r, heap, abertos, largura):
     if forma == "opaco":
         return e["texto"]
     if forma == "objeto":
-        if tipo.startswith("No"):               # nós: valor + endereço
+        if tipo.startswith("No"):               # nós: só o valor
             valor = e["campos"].get("valor")
-            v = "?" if valor is None else valor[1] if valor[0] == "valor" else endereco(valor[1])
-            return f"nó {v} {endereco(x)}"
-        return f"{tipo} {endereco(x)}"          # outros objetos: tipo + endereço
+            v = "?" if valor is None else _texto(valor, heap, abertos, largura)
+            return f"nó {v}"
+        if x in abertos:
+            return f"{tipo}(…)"                 # o objeto aponta para si mesmo
+        return f"{tipo}(" + junta_campos(e["campos"], heap, abertos | {x}, largura) + ")"
     if x in abertos:
         return "[...]"                          # a lista contém a si mesma
     abertos = abertos | {x}
@@ -58,6 +67,17 @@ def junta_pares(pares, heap, abertos, largura):
     for k, v in pares:
         pedacos.append(f"{_texto(k, heap, abertos, largura)}: "
                        f"{_texto(v, heap, abertos, largura)}")
+        total += len(pedacos[-1]) + 2
+        if total > largura:
+            pedacos.append("…")
+            break
+    return ", ".join(pedacos)
+
+
+def junta_campos(campos, heap, abertos, largura):
+    pedacos, total = [], 0
+    for nome, v in campos.items():
+        pedacos.append(f"{nome}={_texto(v, heap, abertos, largura)}")
         total += len(pedacos[-1]) + 2
         if total > largura:
             pedacos.append("…")

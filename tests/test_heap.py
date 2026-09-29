@@ -152,6 +152,33 @@ def test_resumo_de_lista_que_contem_a_si_mesma():
     assert resumo(ref(x), p) == "[1, [...]]"
 
 
+class Pessoa:
+    def __init__(self, nome, idade):
+        self.nome = nome
+        self.idade = idade
+
+
+def test_resumo_de_objeto_mostra_os_campos():
+    ana = Pessoa("Ana", 20)
+    p = Passo("line", [], {}, ref(None), achatar([ana]))
+    assert resumo(ref(ana), p) == "Pessoa(nome='Ana', idade=20)"
+
+
+def test_resumo_de_no_mostra_o_valor_sem_endereco():
+    n = No(3, No(4))
+    p = Passo("line", [], {}, ref(None), achatar([n]))
+    assert resumo(ref(n), p) == "nó 3"
+
+
+def test_resumo_de_objeto_que_aponta_para_si_mesmo():
+    class Anel:
+        pass
+    a = Anel()
+    a.eu = a
+    p = Passo("line", [], {}, ref(None), achatar([a]))
+    assert resumo(ref(a), p) == "Anel(eu=Anel(…))"
+
+
 def test_nenhum_deepcopy_no_pacote():
     fontes = (RAIZ / "src" / "vized").rglob("*.py")
     assert not [f for f in fontes if "deepcopy(" in f.read_text()]
