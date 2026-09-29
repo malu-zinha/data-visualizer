@@ -107,6 +107,82 @@ cd ~/projetos/data-visualizer-repo/data-visualizer    # a pasta do projeto
 source .venv/bin/activate                            # Windows: .venv\Scripts\activate
 ```
 
+## Como o programa precisa estar
+
+O visualizador executa o arquivo do começo ao fim, como
+`python3 arquivo.py`, e mostra o que aconteceu. Se o arquivo só **define**
+funções e classes e nunca as **chama**, nada é executado dentro delas, e a
+tela mostra só as definições.
+
+Para funcionar, o arquivo precisa:
+
+1. **Chamar o código no final.** Depois das definições, escreva a entrada
+   e faça a chamada, no nível do arquivo (sem indentação):
+
+   ```python
+   def soma(a, b):
+       return a + b
+
+   resultado = soma(2, 3)      # sem esta linha, soma() nunca roda
+   print(resultado)
+   ```
+
+   Um bloco `if __name__ == "__main__":` também funciona.
+
+2. **Ter os valores de entrada escritos no código.** `input()` não
+   funciona, porque o programa é executado sem teclado (ver
+   [Limitações](#limitações)).
+
+3. **Rodar sem erro com `python3 arquivo.py`.** Se der erro no Python, dá
+   o mesmo erro no visualizador. A gravação vai até a linha do erro.
+
+4. **Terminar em até 2000 passos.** Use entradas pequenas (5 a 10
+   elementos).
+
+### Código copiado do LeetCode (ou de sites parecidos)
+
+O LeetCode entrega só a classe `Solution`. Quem chama o método é o site,
+por fora. Por isso, colado sozinho no arquivo, o código não mostra nada.
+Faça três ajustes:
+
+1. **Chame o método no final do arquivo**, com um exemplo do enunciado:
+
+   ```python
+   class Solution(object):
+       def twoSum(self, nums, target):
+           ...
+
+   nums = [2, 7, 11, 15]
+   resposta = Solution().twoSum(nums, 9)
+   print(resposta)
+   ```
+
+2. **Importe os tipos usados nas anotações.** O modelo em Python 3 usa
+   `List[int]`, `Optional[...]` etc. sem importar. No site funciona; no
+   arquivo dá `NameError: name 'List' is not defined`. Coloque no começo
+   do arquivo:
+
+   ```python
+   from typing import List, Optional
+   ```
+
+3. **Crie as classes auxiliares.** Em problemas de lista encadeada ou
+   árvore, o LeetCode deixa `ListNode` e `TreeNode` num comentário no topo
+   do código. Tire o `#` dessas linhas para que as classes existam, e
+   monte a estrutura de entrada à mão:
+
+   ```python
+   class ListNode:
+       def __init__(self, val=0, next=None):
+           self.val = val
+           self.next = next
+
+   cabeca = ListNode(1, ListNode(2, ListNode(3)))
+   resposta = Solution().reverseList(cabeca)
+   ```
+
+O exemplo completo está em `exemplos/twosum.py`.
+
 ## Como executar o seu próprio código
 
 1. Crie um arquivo `.py` com o código.
@@ -334,6 +410,7 @@ vized avl                      # o mesmo, pelo nome
 | `grafo.py` | busca em largura (BFS) com matriz e lista de adjacência |
 | `hash.py` | tabela hash com encadeamento |
 | `turma.py` | dicionário de listas de objetos (caixas e setas) |
+| `twosum.py` | Two Sum do LeetCode, com a chamada que o site faz por fora |
 
 ## Problemas comuns
 
@@ -344,6 +421,8 @@ vized avl                      # o mesmo, pelo nome
 | Tela espremida ou cortada | Aumente a janela do terminal (130 colunas ou mais) ou diminua a fonte (`Cmd -` no macOS). |
 | Barra de baixo diz "parou no limite de passos" | Use uma entrada menor ou aumente o limite com `--max-passos`. |
 | Barra de baixo mostra `EOFError` | O programa usa `input()`. Troque por um valor fixo. |
+| A tela só mostra as definições (`class`, `def`) e nada acontece | O arquivo não chama o código. Faça a chamada no final; ver [Como o programa precisa estar](#como-o-programa-precisa-estar). |
+| `NameError: name 'List' is not defined` | Código do LeetCode sem o import. Coloque `from typing import List, Optional` no começo do arquivo. |
 | Aparecem arquivos com " 2" no nome (ex.: `hash 2.py`) | A pasta está sincronizada com o iCloud (Mesa/Documentos). Apague as cópias ou mova o projeto para uma pasta fora do iCloud. |
 
 ## Desenvolvimento
