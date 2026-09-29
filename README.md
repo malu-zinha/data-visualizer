@@ -1,4 +1,12 @@
-# Visualizador de execução de código Python
+# vized
+
+Execute um arquivo Python. Avance linha por linha. Veja a memória.
+
+```
+┌────┬───┐     ┌────┬───┐     ┌────┬───┐
+│ 1  │ ●─┼────▶│ 2  │ ●─┼────▶│ 3  │ ∅ │
+└────┴───┘     └────┴───┘     └────┴───┘
+```
 
 Programa de terminal que executa um arquivo Python e mostra, linha por
 linha:
@@ -18,8 +26,6 @@ adjacência), tabelas hash, arrays e filas são reconhecidos pela forma como
 os objetos se ligam e ganham um desenho próprio. O resto é desenhado como
 caixas (objetos) e setas (referências).
 
----
-
 ## Requisitos
 
 - Python 3.10 ou mais novo
@@ -29,71 +35,68 @@ caixas (objetos) e setas (referências).
 Os comandos abaixo são para macOS e Linux. No Windows, as diferenças estão
 indicadas nos comentários.
 
----
+## Instalação
 
-## Instalação (uma vez só)
+Uma vez só.
 
-**1. Abra o Terminal.** No macOS: `Cmd + Espaço`, digite `Terminal` e
-aperte Enter.
+1. Abra o Terminal. No macOS: `Cmd + Espaço`, digite `Terminal` e
+   aperte Enter.
 
-**2. Confira a versão do Python:**
+2. Confira a versão do Python:
 
-```bash
-python3 --version
-```
+   ```bash
+   python3 --version
+   ```
 
-Tem que aparecer `Python 3.10` ou maior. Se aparecer um número menor ou
-um erro, instale o Python pelo site https://www.python.org/downloads/ e
-repita o comando.
+   Tem que aparecer `Python 3.10` ou maior. Se aparecer um número menor
+   ou um erro, instale o Python pelo site https://www.python.org/downloads/
+   e repita o comando.
 
-**3. Entre na pasta do projeto.**
+3. Entre na pasta do projeto. Se você ainda não tem o projeto no
+   computador, baixe e entre na pasta:
 
-Se você ainda não tem o projeto no computador, baixe e entre na pasta:
+   ```bash
+   git clone https://github.com/malu-zinha/data-visualizer.git
+   cd data-visualizer
+   ```
 
-```bash
-git clone https://github.com/malu-zinha/data-visualizer.git
-cd data-visualizer
-```
+   Se já tem, só entre na pasta dele. Por exemplo:
 
-Se já tem, só entre na pasta dele. Por exemplo:
+   ```bash
+   cd ~/projetos/data-visualizer-repo/data-visualizer
+   ```
 
-```bash
-cd ~/projetos/data-visualizer-repo/data-visualizer
-```
+   A partir daqui, todos os comandos são digitados **dentro dessa pasta**.
 
-A partir daqui, todos os comandos são digitados **dentro dessa pasta**.
+4. Crie o ambiente virtual. É uma pasta `.venv` onde ficam as
+   dependências do projeto, separadas do resto do sistema:
 
-**4. Crie o ambiente virtual.** É uma pasta `.venv` onde ficam as
-dependências do projeto, separadas do resto do sistema:
+   ```bash
+   python3 -m venv .venv
+   ```
 
-```bash
-python3 -m venv .venv
-```
+5. Ative o ambiente virtual:
 
-**5. Ative o ambiente virtual:**
+   ```bash
+   source .venv/bin/activate          # Windows: .venv\Scripts\activate
+   ```
 
-```bash
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-```
+   O começo da linha do terminal passa a mostrar `(.venv)`.
 
-O começo da linha do terminal passa a mostrar `(.venv)`.
+6. Instale o programa e as dependências:
 
-**6. Instale o programa e as dependências:**
+   ```bash
+   pip install -e .
+   ```
 
-```bash
-pip install -e .
-```
+7. Teste com um dos exemplos que vêm no projeto:
 
-**7. Teste com um dos exemplos que vêm no projeto:**
+   ```bash
+   vized exemplos/bubble.py
+   ```
 
-```bash
-vized exemplos/bubble.py
-```
-
-A tela do visualizador abre. Aperte `n` algumas vezes para avançar e
-`q` para sair. A instalação está pronta.
-
----
+   A tela do visualizador abre. Aperte `n` algumas vezes para avançar e
+   `q` para sair. A instalação está pronta.
 
 ## Toda vez que abrir um terminal novo
 
@@ -104,66 +107,62 @@ cd ~/projetos/data-visualizer-repo/data-visualizer    # a pasta do projeto
 source .venv/bin/activate                            # Windows: .venv\Scripts\activate
 ```
 
----
-
 ## Como executar o seu próprio código
 
-**1. Crie um arquivo `.py` com o código.**
+1. Crie um arquivo `.py` com o código.
 
-O arquivo pode ficar em qualquer pasta. O mais simples é criá-lo **dentro
-da pasta do projeto**, ao lado da pasta `exemplos/`.
+   O arquivo pode ficar em qualquer pasta. O mais simples é criá-lo
+   **dentro da pasta do projeto**, ao lado da pasta `exemplos/`.
 
-Use um editor de código, como o VS Code. Não use o TextEdit do macOS:
-ele troca as aspas e o Python não entende.
+   Use um editor de código, como o VS Code. Não use o TextEdit do macOS:
+   ele troca as aspas e o Python não entende.
 
-Outra opção é criar o arquivo direto pelo terminal. Copie e cole o bloco
-inteiro abaixo (da linha `cat` até a linha `FIM`) e aperte Enter:
+   Outra opção é criar o arquivo direto pelo terminal. Copie e cole o
+   bloco inteiro abaixo (da linha `cat` até a linha `FIM`) e aperte Enter:
 
-```bash
-cat > meu_programa.py <<'FIM'
-class No:
-    def __init__(self, valor):
-        self.valor = valor
-        self.prox = None
-
-
-def inserir_no_inicio(cabeca, valor):
-    novo = No(valor)
-    novo.prox = cabeca
-    return novo
+   ```bash
+   cat > meu_programa.py <<'FIM'
+   class No:
+       def __init__(self, valor):
+           self.valor = valor
+           self.prox = None
 
 
-lista = None
-for x in [3, 2, 1]:
-    lista = inserir_no_inicio(lista, x)
-print("pronto!")
-FIM
-```
+   def inserir_no_inicio(cabeca, valor):
+       novo = No(valor)
+       novo.prox = cabeca
+       return novo
 
-Isso cria o arquivo `meu_programa.py` na pasta atual. Para conferir:
-`cat meu_programa.py`.
 
-O arquivo é um programa Python normal: não precisa importar nada do
-visualizador e também roda com `python3 meu_programa.py`.
+   lista = None
+   for x in [3, 2, 1]:
+       lista = inserir_no_inicio(lista, x)
+   print("pronto!")
+   FIM
+   ```
 
-**2. Execute com o visualizador.** Com o ambiente virtual ativado:
+   Isso cria o arquivo `meu_programa.py` na pasta atual. Para conferir:
+   `cat meu_programa.py`.
 
-```bash
-vized meu_programa.py
-```
+   O arquivo é um programa Python normal: não precisa importar nada do
+   visualizador e também roda com `python3 meu_programa.py`.
 
-Se o arquivo estiver em outra pasta, passe o caminho completo:
+2. Execute com o visualizador. Com o ambiente virtual ativado:
 
-```bash
-vized /Users/seu_usuario/Documentos/aula/exercicio.py
-```
+   ```bash
+   vized meu_programa.py
+   ```
 
-No macOS, dá para arrastar o arquivo do Finder para dentro da janela do
-Terminal: o caminho completo é colado sozinho.
+   Se o arquivo estiver em outra pasta, passe o caminho completo:
 
-**3. Navegue pela execução** com as teclas abaixo e saia com `q`.
+   ```bash
+   vized /Users/seu_usuario/Documentos/aula/exercicio.py
+   ```
 
----
+   No macOS, dá para arrastar o arquivo do Finder para dentro da janela
+   do Terminal: o caminho completo é colado sozinho.
+
+3. Navegue pela execução com as teclas abaixo e saia com `q`.
 
 ## Teclas
 
@@ -179,8 +178,6 @@ Terminal: o caminho completo é colado sozinho.
 Se o desenho não couber no painel da direita, role com o mouse ou o
 trackpad.
 
----
-
 ## O que aparece na tela
 
 Tela real do `meu_programa.py` acima, no passo 22 de 36. O programa está
@@ -190,7 +187,7 @@ executar é `novo.prox = cabeca`:
 ```
  ⭘                              Visualizador de execução Python — código e memória, passo a passo
  meu_programa.py
-╸━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+╸━━━━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ╭─ meu_programa.py · inserir_no_inicio() ──────────────────────────╮╭─ python meu_programa.py ─────────────────────────────────────╮
 │    4         self.prox = None                                    ││                                                              │
 │    5                                                             ││  lista encadeada · No                                        │
@@ -275,8 +272,6 @@ lista encadeada · No
 | cinza | endereços, índices e bordas |
 | vermelho | alerta (por exemplo, um nó de árvore com dois pais durante uma rotação) |
 
----
-
 ## Estruturas reconhecidas
 
 O reconhecimento usa só a forma dos objetos. O nome das classes e dos
@@ -294,8 +289,6 @@ campos não importa (`prox`, `next`, `esq`, `left`...).
 | array | lista de números ou textos apontada diretamente por uma variável | células com índice; variáveis inteiras aparecem como `▲ i` embaixo da posição |
 | fila | `collections.deque` apontado diretamente por uma variável | células com `frente` e `fim` |
 | outros | — | caixas e setas |
-
----
 
 ## Limitações
 
@@ -319,9 +312,7 @@ campos não importa (`prox`, `next`, `esq`, `left`...).
 - Argumentos de linha de comando para o programa (`sys.argv`) não são
   repassados.
 
----
-
-## Exemplos incluídos
+## Exemplos
 
 Ficam na pasta `exemplos/`.
 
@@ -342,8 +333,6 @@ vized avl                      # o mesmo, pelo nome
 | `hash.py` | tabela hash com encadeamento |
 | `turma.py` | dicionário de listas de objetos (caixas e setas) |
 
----
-
 ## Problemas comuns
 
 | Problema | Solução |
@@ -355,8 +344,6 @@ vized avl                      # o mesmo, pelo nome
 | Barra de baixo mostra `EOFError` | O programa usa `input()`. Troque por um valor fixo. |
 | Aparecem arquivos com " 2" no nome (ex.: `hash 2.py`) | A pasta está sincronizada com o iCloud (Mesa/Documentos). Apague as cópias ou mova o projeto para uma pasta fora do iCloud. |
 
----
-
 ## Desenvolvimento
 
 Instalação com as ferramentas de teste:
@@ -367,18 +354,6 @@ pytest                                            # todos os testes
 VIZED_ATUALIZAR=1 pytest tests/test_desenhos.py   # regrava os desenhos esperados (só após mudança intencional)
 ```
 
-Estrutura do código (`src/vized/`):
-
-| Pasta/arquivo | Função |
-|---|---|
-| `cli.py` | linha de comando |
-| `nucleo/rastreador.py` | executa o programa com `sys.settrace` e grava um passo por linha |
-| `nucleo/heap.py` | registra a memória de cada passo: `{endereço: descrição do objeto}` |
-| `nucleo/diferenca.py` | compara um passo com o anterior (cores) |
-| `deteccao/formas.py` | reconhece as estruturas |
-| `renderizadores/` | desenha cada estrutura; `generico.py` desenha caixas e setas |
-| `interface/app_textual.py` | a tela (biblioteca textual) |
-
 Os testes em `tests/test_desenhos.py` executam cada arquivo de `exemplos/`
 e comparam o desenho com os arquivos em `tests/snapshots/`. Um arquivo
 novo em `exemplos/` entra automaticamente nos testes e nas abas.
@@ -388,3 +363,17 @@ macOS/Linux) grava a tela de todos os exemplos e gera
 `web/passo-a-passo.html`, que abre no navegador.
 
 O histórico do desenvolvimento está em `docs/ROADMAP.md`.
+
+## Estrutura do código
+
+O código fica em `src/vized/`.
+
+| Arquivo | O quê |
+|---|---|
+| `cli.py` | Linha de comando. |
+| `nucleo/rastreador.py` | Executa o programa com `sys.settrace` e grava um passo por linha. |
+| `nucleo/heap.py` | Registra a memória de cada passo: `{endereço: descrição do objeto}`. |
+| `nucleo/diferenca.py` | Compara um passo com o anterior (cores). |
+| `deteccao/formas.py` | Reconhece as estruturas. |
+| `renderizadores/` | Desenha cada estrutura. `generico.py` desenha caixas e setas. |
+| `interface/app_textual.py` | A tela (biblioteca textual). |
